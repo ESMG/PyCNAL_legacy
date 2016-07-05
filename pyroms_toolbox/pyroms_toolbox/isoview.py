@@ -81,10 +81,10 @@ def isoview(var, prop, tindex, isoval, grid, filename=None, \
     # get constante-iso slice
     if tindex == -1:
         var = var[:,:,:]
-	prop = prop[:,:,:]
+        prop = prop[:,:,:]
     else:
         var = var[tindex,:,:,:]
-	prop = prop[tindex,:,:,:]
+        prop = prop[tindex,:,:,:]
 
     if fill == True:
         isoslice, lon, lat = pyroms.tools.isoslice(var, prop, isoval, \
@@ -178,9 +178,9 @@ def isoview(var, prop, tindex, isoval, grid, filename=None, \
             cf = plt.pcolor(lon, lat, isoslice, cmap = pal, norm = pal_norm)
 
     if clb is True:
-    	clb = plt.colorbar(cf, fraction=0.075,format='%.2f')
-    	for t in clb.ax.get_yticklabels():
-    	    t.set_fontsize(fts)
+        clb = plt.colorbar(cf, fraction=0.075,format='%.2f')
+        for t in clb.ax.get_yticklabels():
+            t.set_fontsize(fts)
 
     if contour is True:
         if fill is not True:
@@ -211,7 +211,7 @@ def isoview(var, prop, tindex, isoval, grid, filename=None, \
             plt.savefig(outfile, dpi=200, facecolor='w', edgecolor='w', \
                         orientation='portrait')
         else:
-            print('Unrecognized file extension. Please use .png, .svg or .eps file extension.')	 
+            print('Unrecognized file extension. Please use .png, .svg or .eps file extension.')
 
 
     if proj is None:

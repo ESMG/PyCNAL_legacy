@@ -130,15 +130,15 @@ def lonview(var, tindex, longitude, gridid, filename=None, \
 
     if map is True:
         # set axes for the main plot in order to keep space for the map       
-    	if fts < 12:
- 	    ax=None
- 	else:
+        if fts < 12:
+            ax=None
+        else:
             ax = plt.axes([0.15, 0.08, 0.8, 0.65])       
     else:       
-    	if fts < 12:
- 	    ax=None
- 	else:
- 	    ax=plt.axes([0.15, 0.1, 0.8, 0.8])
+        if fts < 12:
+            ax=None
+        else:
+            ax=plt.axes([0.15, 0.1, 0.8, 0.8])
 
 
     if fill is True:
@@ -147,9 +147,9 @@ def lonview(var, tindex, longitude, gridid, filename=None, \
         cf = plt.pcolor(lats, zs, lonslice, cmap = pal, norm = pal_norm, axes=ax)
 
     if clb is True:
-    	clb = plt.colorbar(cf, fraction=0.075,format='%.2f')
-    	for t in clb.ax.get_yticklabels():
-    	    t.set_fontsize(fts)
+        clb = plt.colorbar(cf, fraction=0.075,format='%.2f')
+        for t in clb.ax.get_yticklabels():
+            t.set_fontsize(fts)
 
     if contour is True:
         if fill is not True:
@@ -213,7 +213,7 @@ def lonview(var, tindex, longitude, gridid, filename=None, \
             print('Write figure to file', outfile)
             plt.savefig(outfile, dpi=200, facecolor='w', edgecolor='w', orientation='portrait')
         else:
-            print('Unrecognized file extension. Please use .png, .svg or .eps file extension.')	 
+            print('Unrecognized file extension. Please use .png, .svg or .eps file extension.')
 
 
     return

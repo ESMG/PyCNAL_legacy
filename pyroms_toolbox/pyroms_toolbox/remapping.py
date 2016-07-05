@@ -419,7 +419,7 @@ def remapping(varname, srcfile, wts_files, srcgrd, dstgrd, \
                     for n in range(dstgrd.vgrid.N):
                         dst_u[n,idxu[0], idxu[1]] = spval
                         dst_v[n,idxv[0], idxv[1]] = spval
-		else:
+                else:
                     dst_u = 0.5 * (dst_u[:,:-1] + dst_u[:,1:])
                     dst_v = 0.5 * (dst_v[:-1,:] + dst_v[1:,:])
                     dst_u[idxu[0], idxu[1]] = spval

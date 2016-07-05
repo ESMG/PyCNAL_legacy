@@ -1,7 +1,7 @@
 #!/bin/sh
 
-DESTDIR=/usr/local
-#DESTDIR=/u1/uaf/kate
+#DESTDIR=/usr/local
+DESTDIR=/u1/uaf/kshedstrom/python
 CURDIR=`pwd`
 export CPPFLAGS=-I$DESTDIR/include
 export LDFLAGS='-L$DESTDIR/lib'
@@ -31,7 +31,7 @@ make
 make lib
 make shlib
 make install
-PYROMS_PATH=`python -c 'import pyroms ; print pyroms.__path__[0]'`
+PYROMS_PATH=`python -c 'import pyroms ; print(pyroms.__path__[0])'`
 cp libgridgen.so $PYROMS_PATH
 #cp $LOCALDIR/lib/libgridgen.so $PYROMS_PATH
 echo "installing scrip..."
