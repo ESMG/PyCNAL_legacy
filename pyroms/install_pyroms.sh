@@ -2,17 +2,19 @@
 
 #DESTDIR=/usr/local
 DESTDIR=/u1/uaf/kshedstrom/python
+PYROMS_PATH=/u1/uaf/kshedstrom/python/lib/python3.5/site-packages/pyroms
 CURDIR=`pwd`
-export CPPFLAGS=-I$DESTDIR/include
-export LDFLAGS='-L$DESTDIR/lib'
-#export LDFLAGS='-L$DESTDIR/lib -L/usr/local/pkg/python/python-2.7.2/lib -shared'
-export CFLAGS=-I$DESTDIR/include
-export SHLIBS=-L$DESTDIR/lib
 
 echo
 echo "installing pyroms..."
 echo
-python setup.py build --fcompiler=gnu95;
+python setup.py build
+python setup.py install --prefix=$DESTDIR
+
+echo
+echo "installing pyroms..."
+echo
+python setup.py build
 python setup.py install --prefix=$DESTDIR
 echo "installing external libraries..."
 echo "installing gridgen..."
@@ -31,9 +33,16 @@ make
 make lib
 make shlib
 make install
-PYROMS_PATH=`python -c 'import pyroms ; print(pyroms.__path__[0])'`
+#
+#PYROMS_PATH=`python -c 'import pyroms ; print(pyroms.__path__[0])'`
+#
+# Now setting this above because this gave me:
+# $ echo $PYROMS_PATH
+# scrip.so not found. Remapping function will not be available
+# /u1/uaf/kshedstrom/python/lib/python3.5/site-packages/pyroms
+#
+# One could fix it...
 cp libgridgen.so $PYROMS_PATH
-#cp $LOCALDIR/lib/libgridgen.so $PYROMS_PATH
 echo "installing scrip..."
 cd $CURDIR/external/scrip/source
 perl -pe "s#\/usr\/local#$DESTDIR#" makefile > makefile2

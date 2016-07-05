@@ -10,7 +10,7 @@ def roms2z(var, grd, grdz, Cpos='rho', irange=None, jrange=None, \
 
     optional switch:
       - Cpos='rho', 'u' 'v' or 'w'   specify the C-grid position where 
-				     the variable rely
+                                     the variable rely
       - irange                       specify grid sub-sample for i direction
       - jrange                       specify grid sub-sample for j direction
       - spval=1e37                   define spval value

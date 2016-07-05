@@ -32,7 +32,7 @@ class Sta_CGrid(object):
     def __init__(self, x_rho, y_rho, angle_rho=None):
                 
         assert np.ndim(x_rho)==1 and np.ndim(y_rho)==1 and \
-	    np.shape(x_rho)==np.shape(y_rho), \
+            np.shape(x_rho)==np.shape(y_rho), \
             'x and y must be 2D arrays of the same size.'
         
         if np.any(np.isnan(x_rho)) or np.any(np.isnan(y_rho)):

@@ -28,9 +28,9 @@ NOCOMPLEX =
 HAVE_GRIDNODES_H = 
 
 CC = gcc
-CFLAGS = -I/u1/uaf/kshedstrom/python/include
-CFLAGS_TRIANGLE = -I/u1/uaf/kshedstrom/python/include -w -ffloat-store
-LDFLAGS = -L$DESTDIR/lib
+CFLAGS = -g -O2 -Wall
+CFLAGS_TRIANGLE = -g -O2 -Wall -w -ffloat-store
+LDFLAGS = -L/usr/local/lib
 
 AR = ar
 ARFLAGS = cru

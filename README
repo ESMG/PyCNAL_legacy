@@ -10,16 +10,11 @@ rough around the edges.
 Prerequisites
 -------------
 
-Meanwhile, you can prepare by installing Enthought Python
-(http://www.enthought.com/) or by this collection of packages:
+Now using Anaconda python to download python 3.x and a bunch of other stuff:
 
-   * Python itself. You will need a version that's at least 2.4 and
-     less than 3.0.
+   * Python itself, at least 3.0.
 
-   * numpy. Get a version that's reasonably new, don't count on the
-     version 1.0.1 that you found already on the system. How do you
-     tell the version? At the interactive prompt from python, type
-     "import numpy" then "numpy.__version__".
+   * numpy.
 
    * scipy.
 
@@ -40,9 +35,7 @@ Meanwhile, you can prepare by installing Enthought Python
      pylab package.
 
 We may also add pyngl and pynio from NCAR to this list. Or ESMPy.
-Or Python 3...
-
-If you want a package manager for these bits, check out Anaconda.
+Or jupyter.
 
 Installing
 ----------
@@ -65,14 +58,18 @@ setenv LDFLAGS '-L/usr/local/pkg/python/python-2.7.2/lib -shared'
                      cd ..
   cd pyroms; check the paths in the install script and see if it runs...
 
+I had to hack the scrip makefile for the fortran90 netcdf stuff. The
+anaconda netcdf-fortran reports:
+    nf-config not yet implemented for cmake builds
+
 If you needed the LDFLAGS above, you'll need to add it to the
 install script too, at least for the build of scrip.
 
-For creep.so:
+A note on the .so files from fortran: They now end up with names like:
 
-  cd pyroms_toolbox/pyroms_toolbox/Grid_HYCOM//makefile; make
+    scrip.cpython-35m-x86_64-linux-gnu.so
 
-Then move creep.so into a directory in your PYTHONPATH.
+It's OK - they'll load as long as they are in your PYTHONPATH.
 
 Running
 -------
