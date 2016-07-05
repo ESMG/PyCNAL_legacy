@@ -47,8 +47,8 @@ from .smooth_1D import smooth_1D
 from . import BGrid_SODA
 from .get_littoral import get_littoral
 from .get_littoral2 import get_littoral2
-from _move_runoff import move_runoff
-from _move_river_t import move_river_t
+from ._move_runoff import move_runoff
+from ._move_river_t import move_river_t
 from .TS_diagram import TS_diagram
 from .date2jday import date2jday
 from .jday2date import jday2date
