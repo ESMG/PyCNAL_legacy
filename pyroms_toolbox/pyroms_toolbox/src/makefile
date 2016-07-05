@@ -1,6 +1,6 @@
 #!/bin/csh
 
-F2PY = f2py3
+F2PY = f2py
 FCOMPILER = gfortran
 F2PY_LIB = 
 F2PY_INCLUDE = 
