@@ -9,7 +9,7 @@
 # SVN $URL$
 #===============================================================================
 
-NC_CONFIG = nc-config
+NC_CONFIG = nf-config
 LIBDIR = $(shell $(NC_CONFIG) --prefix)/lib
 INCDIR = $(shell $(NC_CONFIG) --prefix)/include
 SRCDIR  = .
@@ -152,7 +152,7 @@ $(SRCDIR)/scrip.so: $(SRCDIR)/pyscrip.f90 $(OBJF2PY)
 install:
 	/bin/cp $(SRCDIR)/scrip $(PREFIX)/bin
 	/bin/cp $(SRCDIR)/scrip_test $(PREFIX)/bin
-	/bin/cp $(SRCDIR)/scrip.*.so $(PREFIX)/lib/scrip.so
+	/bin/cp $(SRCDIR)/scrip.*.so $(PREFIX)/lib
 
 clean: 
 	/bin/rm *.o *.mod *.so scrip scrip_test

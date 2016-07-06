@@ -1,8 +1,8 @@
 #!/bin/sh
 
 #DESTDIR=/usr/local
-DESTDIR=/u1/uaf/kshedstrom/python
-PYROMS_PATH=/u1/uaf/kshedstrom/python/lib/python3.5/site-packages/pyroms
+DESTDIR=$HOME/python
+PYROMS_PATH=$HOME/python/lib/python3.5/site-packages/pyroms
 CURDIR=`pwd`
 
 echo
@@ -11,12 +11,8 @@ echo
 python setup.py build
 python setup.py install --prefix=$DESTDIR
 
-echo
-echo "installing pyroms..."
-echo
-python setup.py build
-python setup.py install --prefix=$DESTDIR
 echo "installing external libraries..."
+python setup.py install --prefix=$DESTDIR
 echo "installing gridgen..."
 cd $CURDIR/external/nn
 ./configure --prefix=$DESTDIR
@@ -49,7 +45,8 @@ perl -pe "s#\/usr\/local#$DESTDIR#" makefile > makefile2
 make -f makefile2
 make -f makefile2 f2py
 make -f makefile2 install
-cp scrip.so $PYROMS_PATH
+# Write it this way for Darwin...
+cp -r scrip.*.so* $PYROMS_PATH
 cd $CURDIR
 echo
 echo "Done installing pyroms..."
