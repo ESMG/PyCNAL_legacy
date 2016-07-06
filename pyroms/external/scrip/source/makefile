@@ -152,7 +152,7 @@ $(SRCDIR)/scrip.so: $(SRCDIR)/pyscrip.f90 $(OBJF2PY)
 install:
 	/bin/cp $(SRCDIR)/scrip $(PREFIX)/bin
 	/bin/cp $(SRCDIR)/scrip_test $(PREFIX)/bin
-	/bin/cp $(SRCDIR)/scrip.*.so $(PREFIX)/lib
+	/bin/cp $(SRCDIR)/scrip*.so $(PREFIX)/lib
 
 clean: 
 	/bin/rm *.o *.mod *.so scrip scrip_test

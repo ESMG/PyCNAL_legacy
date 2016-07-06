@@ -12,7 +12,6 @@ python setup.py build
 python setup.py install --prefix=$DESTDIR
 
 echo "installing external libraries..."
-python setup.py install --prefix=$DESTDIR
 echo "installing gridgen..."
 cd $CURDIR/external/nn
 ./configure --prefix=$DESTDIR
@@ -46,7 +45,7 @@ make -f makefile2
 make -f makefile2 f2py
 make -f makefile2 install
 # Write it this way for Darwin...
-cp -r scrip.*.so* $PYROMS_PATH
+cp -r scrip*.so* $PYROMS_PATH
 cd $CURDIR
 echo
 echo "Done installing pyroms..."
