@@ -6,11 +6,11 @@ SHELL = /bin/sh
 
 #### Start of system configuration section. ####
 
-prefix = /Users/kate/python
+prefix = /u1/uaf/kshedstrom/python
 exec_prefix = ${prefix}
 
 bindir = ${exec_prefix}/bin
-libdir = /Users/kate/python/lib
+libdir = /u1/uaf/kshedstrom/python/lib
 includedir = ${prefix}/include
 
 INSTALLDIRS =\
@@ -28,14 +28,14 @@ NOCOMPLEX =
 HAVE_GRIDNODES_H = 
 
 CC = gcc
-CFLAGS = -g -O2 -Wall
-CFLAGS_TRIANGLE = -g -O2 -Wall -w -ffloat-store
-LDFLAGS = -L/usr/local/lib
+CFLAGS = -I/u1/uaf/kshedstrom/python/include
+CFLAGS_TRIANGLE = -I/u1/uaf/kshedstrom/python/include -w -ffloat-store
+LDFLAGS = -L/u1/uaf/kshedstrom/python/lib
 
 AR = ar
 ARFLAGS = cru
 
-LIBS = -lm 
+LIBS = -lgu -lm 
 
 MLIB = -lm
 

@@ -4,7 +4,7 @@
 #define HAVE_COMPLEX 1
 /* #undef HAVE__COMPLEX__ */
 /* #undef NOCOMPLEX */
-/* #undef HAVE_GRIDNODES_H */
+#define HAVE_GRIDNODES_H 1
 
 #if defined(HAVE_COMPLEX)
  #include <complex.h>

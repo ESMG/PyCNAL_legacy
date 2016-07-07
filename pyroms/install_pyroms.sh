@@ -20,10 +20,11 @@ cd $CURDIR/external/csa
 ./configure --prefix=$DESTDIR
 make install
 cd $CURDIR/external/gridutils
-./configure --prefix=$DESTDIR
+./configure CPPFLAGS=-I$DESTDIR/include LDFLAGS=-L$DESTDIR/lib CFLAGS=-I$DESTDIR/include --prefix=$DESTDIR
 make install
 cd $CURDIR/external/gridgen
-./configure --prefix=$DESTDIR
+export SHLIBS=-L$DESTDIR/lib
+./configure CPPFLAGS=-I$DESTDIR/include LDFLAGS=-L$DESTDIR/lib CFLAGS=-I$DESTDIR/include --prefix=$DESTDIR
 make
 make lib
 make shlib

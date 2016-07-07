@@ -1853,7 +1853,7 @@ def hindices(lon, lat, grd, Cpos='rho', rectangular=0, spval=1e37):
     lon = np.matrix(lon)
     lat = np.matrix(lat)
 
-    ipos, jpos = _obs_interp.hindices(spherical, angle.T, int.T, latg.T, \
+    ipos, jpos = _obs_interp.hindices(spherical, angle.T, long.T, latg.T, \
                                       lon, lat, spval, rectangular)
 
     # python indexing start with zero...

@@ -1,3 +1,7 @@
+The make_YELLOW_grd_v1.py script is meant to be cut and pasted into an
+"ipython --pylab" session. The make_YELLOW_grd_v2.py script should run as a
+batch job but reads the grid from the first script.
+
 The boundary and initial conditions are derived from SODA
 (http://www.atmos.umd.edu/~ocean/). For another domain, you will
 have to change all the python files under the Inputs directory. New

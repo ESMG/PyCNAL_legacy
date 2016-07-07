@@ -34,6 +34,9 @@ Now using Anaconda python to download python 3.x and a bunch of other stuff:
      interactive fun. It preloads both numpy and the matplotlib
      pylab package.
 
+   * natgrid from http://github.com/matplotlib/natgrid for at least
+     one of the examples.
+
 We may also add pyngl and pynio from NCAR to this list. Or ESMPy.
 Or jupyter.
 
@@ -50,26 +53,23 @@ For now,
                      python setup.py install --prefix=xxx;
                      cd ..
 
-The above may or may not need something along these lines:
-setenv LDFLAGS '-L/usr/local/pkg/python/python-2.7.2/lib -shared'
-
   cd bathy_smoother; python setup.py build;
                      python setup.py install --prefix=xxx;
                      cd ..
   cd pyroms; check the paths in the install script and see if it runs...
+             Maybe cut and paste from it into a bash shell.
 
 I had to hack the scrip makefile for the fortran90 netcdf stuff. The
 anaconda netcdf-fortran reports:
     nf-config not yet implemented for cmake builds
 
-If you needed the LDFLAGS above, you'll need to add it to the
-install script too, at least for the build of scrip.
-
-A note on the .so files from fortran: They now end up with names like:
+A note on the .so files from fortran: They might now end up with names like:
 
     scrip.cpython-35m-x86_64-linux-gnu.so
 
-It's OK - they'll load as long as they are in your PYTHONPATH.
+It's OK - they'll load as long as they are in your PYTHONPATH. You might
+also need libgu.so to be in your LD_LIBRARY_PATH. I'm still exploring where
+all the .so files need to be for things to work.
 
 Also, f2py may or may not be called f2py3, depending. It's listed explicitly
 in the scrip makefile and under pyroms_toolbox/pyroms_toolbox/src/makefile.

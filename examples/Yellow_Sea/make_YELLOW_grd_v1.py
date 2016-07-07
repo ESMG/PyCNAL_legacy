@@ -42,6 +42,9 @@ hgrd = pyroms.grid.CGrid_geo(lonv, latv, map)
 for verts in map.coastsegs:
     hgrd.mask_polygon(verts)
 
+# Because the land mask ends up backwards.
+hgrd.mask_rho = 1 - hgrd.mask_rho
+
 # Edit the land mask interactively.
 #pyroms.grid.edit_mask_mesh(hgrd, proj=map)
 #edit_mask_mesh_ij is a faster version using imshow... but no map projection.
