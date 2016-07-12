@@ -196,7 +196,7 @@ def remapping_bound(varname, srcfile, wts_files, srcgrd, dst_grd, \
                        nc.createVariable(varn, 'f8', dimens, \
                            fill_value=spval)
                        nc.variables[varn].long_name = varname[nv] + \
-                            ' ' + int[sid] + ' boundary condition'
+                            ' ' + long[sid] + ' boundary condition'
                        try:
                            nc.variables[varn].units = src_var.units
                        except:
@@ -342,7 +342,7 @@ def remapping_bound(varname, srcfile, wts_files, srcgrd, dst_grd, \
                        nc.createVariable(varn, 'f8', dimens, \
                          fill_value=spval)
                        nc.variables[varn].long_name = uvar_out + \
-                           ' ' + int[sid] + ' boundary condition'
+                           ' ' + long[sid] + ' boundary condition'
                        try:
                            nc.variables[varn].units = src_u.units
                        except:
@@ -362,7 +362,7 @@ def remapping_bound(varname, srcfile, wts_files, srcgrd, dst_grd, \
                        nc.createVariable(varn, 'f8', dimens, \
                          fill_value=spval)
                        nc.variables[varn].long_name = vvar_out + \
-                                ' ' + int[sid] + ' boundary condition'
+                                ' ' + long[sid] + ' boundary condition'
                        try:
                            nc.variables[varn].units = src_v.units
                        except:
