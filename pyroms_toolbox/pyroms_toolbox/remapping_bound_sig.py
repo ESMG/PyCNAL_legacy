@@ -143,7 +143,7 @@ def remapping_bound_sig(varname, srcfile, wts_files, srcgrd, dst_grd, \
                        nc.createVariable(varn, 'f8', dimens, \
                            fill_value=spval)
                        nc.variables[varn].long_name = varname[nv] + \
-                            ' ' + int[sid] + ' boundary condition'
+                            ' ' + long[sid] + ' boundary condition'
                        try:
                            nc.variables[varn].units = src_var.units
                        except:
