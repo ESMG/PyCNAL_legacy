@@ -4,7 +4,7 @@ import netCDF4
 import sys
 import pdb
 from datetime import datetime
-import pyroms
+import pycnal
 
 def add_to_lists(pairs, i, j, sign, dir):
     x1, y1 = pairs[0]
@@ -76,7 +76,7 @@ for line in f:
         pairs.append([int(a),int(b)]) 
 
 # set up grid coords
-grd = pyroms.grid.get_ROMS_grid('COOK_INLET_LYON')
+grd = pycnal.grid.get_ROMS_grid('COOK_INLET_LYON')
 Mp, Lp = grd.vgrid.h.shape
 # number of rivers
 Nr = len(i)

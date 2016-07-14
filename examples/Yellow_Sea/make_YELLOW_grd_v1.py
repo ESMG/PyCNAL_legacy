@@ -7,8 +7,8 @@ import matplotlib.colors as colors
 from scipy.signal import medfilt2d
 import netCDF4
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 from bathy_smoother import *
 
 # Grid dimension
@@ -28,15 +28,15 @@ beta = np.array([1, 1, 1, 1])
 
 #generate the new grid
 # Do this if you aren't going to move the grid corners interactively.
-hgrd = pyroms.grid.Gridgen(lonp, latp, beta, (Mm+3, Lm+3), proj=map)
+hgrd = pycnal.grid.Gridgen(lonp, latp, beta, (Mm+3, Lm+3), proj=map)
 # Do this if you are going to use the Boundary Interactor
 #map.drawcoastlines()
 #xp, yp = map(lonp, latp)
-#bry = pyroms.hgrid.BoundaryInteractor(xp, yp, beta, shp=(Mm+3,Lm+3), proj=map)
+#bry = pycnal.hgrid.BoundaryInteractor(xp, yp, beta, shp=(Mm+3,Lm+3), proj=map)
 #hgrd=bry.grd
 
 lonv, latv = list(map(hgrd.x_vert, hgrd.y_vert, inverse=True))
-hgrd = pyroms.grid.CGrid_geo(lonv, latv, map)
+hgrd = pycnal.grid.CGrid_geo(lonv, latv, map)
 
 # generate the mask
 for verts in map.coastsegs:
@@ -46,10 +46,10 @@ for verts in map.coastsegs:
 hgrd.mask_rho = 1 - hgrd.mask_rho
 
 # Edit the land mask interactively.
-#pyroms.grid.edit_mask_mesh(hgrd, proj=map)
+#pycnal.grid.edit_mask_mesh(hgrd, proj=map)
 #edit_mask_mesh_ij is a faster version using imshow... but no map projection.
-coast = pyroms.utility.get_coast_from_map(map)
-pyroms.grid.edit_mask_mesh_ij(hgrd, coast=coast)
+coast = pycnal.utility.get_coast_from_map(map)
+pycnal.grid.edit_mask_mesh_ij(hgrd, coast=coast)
 
 
 #### Use the following to interpolate from etopo2 bathymetry.
@@ -70,14 +70,14 @@ topo = -topo
 
 # fix minimum depth
 hmin = 5
-topo = pyroms_toolbox.change(topo, '<', hmin, hmin)
+topo = pycnal_toolbox.change(topo, '<', hmin, hmin)
 
 # interpolate new bathymetry
 lon, lat = np.meshgrid(lons, lats)
 h = griddata(lon.flat,lat.flat,topo.flat,hgrd.lon_rho,hgrd.lat_rho)
 
 # insure that depth is always deeper than hmin
-h = pyroms_toolbox.change(h, '<', hmin, hmin)
+h = pycnal_toolbox.change(h, '<', hmin, hmin)
 
 # set depth to hmin where masked
 idx = np.where(hgrd.mask_rho == 0)
@@ -103,11 +103,11 @@ theta_b = 2
 theta_s = 7.0
 Tcline = 50
 N = 30
-vgrd = pyroms.vgrid.s_coordinate_4(h, theta_b, theta_s, Tcline, N, hraw=hraw)
+vgrd = pycnal.vgrid.s_coordinate_4(h, theta_b, theta_s, Tcline, N, hraw=hraw)
 
 # ROMS grid
 grd_name = 'YELLOW'
-grd = pyroms.grid.ROMS_Grid(grd_name, hgrd, vgrd)
+grd = pycnal.grid.ROMS_Grid(grd_name, hgrd, vgrd)
 
 # write grid to netcdf file
-pyroms.grid.write_ROMS_grid(grd, filename='YELLOW_grd_v1.nc')
+pycnal.grid.write_ROMS_grid(grd, filename='YELLOW_grd_v1.nc')

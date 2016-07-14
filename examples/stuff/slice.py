@@ -4,9 +4,9 @@ import os
 import sys
 import subprocess
 #import Ngl
-import pyroms
-from pyroms_toolbox import jday2date
-import pyroms_toolbox
+import pycnal
+from pycnal_toolbox import jday2date
+import pycnal_toolbox
 import matplotlib.pyplot as plt
 
 #year = int(sys.argv[1])
@@ -21,7 +21,7 @@ lst = subprocess.getoutput('ls months/*.nc')
 lst = lst.split()
 lst_file = lst_file + lst
 
-grd = pyroms.grid.get_ROMS_grid('ARCTIC2')
+grd = pycnal.grid.get_ROMS_grid('ARCTIC2')
 
 #clat = grd.hgrid.lat_rho
 #clon = grd.hgrid.lon_rho
@@ -127,7 +127,7 @@ for file in lst_file:
 #    plot = Ngl.contour_map(wks, aice, res)
 #    Ngl.text_ndc(wks, date_tag, 0.85, 0.84, txres)
     plt.clf()
-    pyroms_toolbox.transectview(temp, -1, istart, iend, jstart, \
+    pycnal_toolbox.transectview(temp, -1, istart, iend, jstart, \
           jend, 'ARCTIC2', outfile=plotout, cmin=-1.8, cmax=10.25)
     nc.close()
 #    Ngl.frame(wks)

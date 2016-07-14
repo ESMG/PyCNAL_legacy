@@ -1,11 +1,11 @@
-Welcome to Pyroms!
+Welcome to PyCNAL!
 
-Pyroms is a collection of tools to help with input and output files
+PyCNAL is a collection of tools to help with input and output files
 from the Regional Ocean Modeling System (ROMS). It was originally
 started by Rob Hetland as a googlecode project, then he morphed it
 into octant, also at googlecode. Frederic Castruccio then created a
-fork and renamed it back to pyroms. This version is still rather
-rough around the edges.
+fork and renamed it back to pyroms. It has now been converted to
+Python 3 and renamed PyCNAL. We're still working on the rough edges.
 
 Prerequisites
 -------------
@@ -37,26 +37,26 @@ Now using Anaconda python to download python 3.x and a bunch of other stuff:
    * natgrid from http://github.com/matplotlib/natgrid for at least
      one of the examples.
 
-We may also add pyngl and pynio from NCAR to this list. Or ESMPy.
+We may also add pyngl and pynio from NCAR to this list. Or ESMF.
 Or jupyter.
 
 Installing
 ----------
 
-Pyroms is currently in three different packages, pyroms itself,
-pyroms_toolbox, and bathy_smoother. We are in the process of creating
+PyCNAL is currently in three different packages, pycnal itself,
+pycnal_toolbox, and bathy_smoother. We are in the process of creating
 setup.py scripts for each, plus an examples directory.
 
 For now,
 
-  cd pyroms_toolbox; python setup.py build --fcompiler=gnu95;
+  cd pycnal_toolbox; python setup.py build --fcompiler=gnu95;
                      python setup.py install --prefix=xxx;
                      cd ..
 
   cd bathy_smoother; python setup.py build;
                      python setup.py install --prefix=xxx;
                      cd ..
-  cd pyroms; check the paths in the install script and see if it runs...
+  cd pycnal; check the paths in the install script and see if it runs...
              Maybe cut and paste from it into a bash shell.
 
 I had to hack the scrip makefile for the fortran90 netcdf stuff. The
@@ -72,12 +72,12 @@ also need libgu.so to be in your LD_LIBRARY_PATH. I'm still exploring where
 all the .so files need to be for things to work.
 
 Also, f2py may or may not be called f2py3, depending. It's listed explicitly
-in the scrip makefile and under pyroms_toolbox/pyroms_toolbox/src/makefile.
+in the scrip makefile and under pycnal_toolbox/pycnal_toolbox/src/makefile.
 
 Running
 -------
 
-We have a gridid.txt file that's pointed to by the PYROMS_GRIDID_FILE
+We have a gridid.txt file that's pointed to by the PYCNAL_GRIDID_FILE
 environment variable. If you are operating on files containing
 sufficient grid information already, you won't need to use this.
 An example is provided in the examples directory.

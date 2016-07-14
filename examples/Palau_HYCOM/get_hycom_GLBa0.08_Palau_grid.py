@@ -4,8 +4,8 @@ matplotlib.use('Agg')
 import numpy as np
 import netCDF4
 from datetime import datetime
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 import sys
 
 
@@ -65,7 +65,7 @@ nc.variables['z'][:] = z
 
 nc.createVariable('ocean_time', 'f', ('ocean_time'))
 nc.variables['ocean_time'].units = 'days since 1900-01-01 00:00:00'
-jday = pyroms_toolbox.date2jday(datetime(year, 1, 1)) + day - 1
+jday = pycnal_toolbox.date2jday(datetime(year, 1, 1)) + day - 1
 nc.variables['ocean_time'][0] = jday
 
 nc.createVariable(outvarname, 'f', ('ocean_time', 'z', 'lat', 'lon'), fill_value=spval)

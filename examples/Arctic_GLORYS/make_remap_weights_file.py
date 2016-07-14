@@ -1,22 +1,22 @@
 import matplotlib
 matplotlib.use('Agg')
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 #import CGrid_GLORYS
 
 # load the grid
 #srcgrd = CGrid_GLORYS.get_nc_CGrid_GLORYS('/Volumes/P1/Data/GLORYS/data/GL2V1_mesh_mask_new.nc', name='GLORYS_ARCTIC2', area='npolar', ystart=690)
-#srcgrd = pyroms_toolbox.CGrid_GLORYS.get_nc_CGrid_GLORYS('/Volumes/P1/Data/GLORYS/data/GL2V1_mesh_mask_new.nc', name='GLORYS_ARCTIC2', area='npolar', ystart=690)
-srcgrd = pyroms_toolbox.CGrid_GLORYS.get_nc_CGrid_GLORYS('/archive/u1/uaf/kate/GLORYS/GL2V1_mesh_mask_new.nc', name='GLORYS_ARCTIC2', area='npolar', ystart=690)
-dstgrd = pyroms.grid.get_ROMS_grid('ARCTIC2')
+#srcgrd = pycnal_toolbox.CGrid_GLORYS.get_nc_CGrid_GLORYS('/Volumes/P1/Data/GLORYS/data/GL2V1_mesh_mask_new.nc', name='GLORYS_ARCTIC2', area='npolar', ystart=690)
+srcgrd = pycnal_toolbox.CGrid_GLORYS.get_nc_CGrid_GLORYS('/archive/u1/uaf/kate/GLORYS/GL2V1_mesh_mask_new.nc', name='GLORYS_ARCTIC2', area='npolar', ystart=690)
+dstgrd = pycnal.grid.get_ROMS_grid('ARCTIC2')
 
 # make remap grid file for scrip
-pyroms_toolbox.CGrid_GLORYS.make_remap_grid_file(srcgrd, Cpos='t')
-pyroms_toolbox.CGrid_GLORYS.make_remap_grid_file(srcgrd, Cpos='u')
-pyroms_toolbox.CGrid_GLORYS.make_remap_grid_file(srcgrd, Cpos='v')
-pyroms.remapping.make_remap_grid_file(dstgrd, Cpos='rho')
-pyroms.remapping.make_remap_grid_file(dstgrd, Cpos='u')
-pyroms.remapping.make_remap_grid_file(dstgrd, Cpos='v')
+pycnal_toolbox.CGrid_GLORYS.make_remap_grid_file(srcgrd, Cpos='t')
+pycnal_toolbox.CGrid_GLORYS.make_remap_grid_file(srcgrd, Cpos='u')
+pycnal_toolbox.CGrid_GLORYS.make_remap_grid_file(srcgrd, Cpos='v')
+pycnal.remapping.make_remap_grid_file(dstgrd, Cpos='rho')
+pycnal.remapping.make_remap_grid_file(dstgrd, Cpos='u')
+pycnal.remapping.make_remap_grid_file(dstgrd, Cpos='v')
 
 # compute remap weights
 # input namelist variables for bilinear remapping at rho points
@@ -29,7 +29,7 @@ map2_name = 'ARCTIC2 to GLORYS Bilinear Mapping'
 num_maps = 1
 map_method = 'bilinear'
 
-pyroms.remapping.compute_remap_weights(grid1_file, grid2_file, \
+pycnal.remapping.compute_remap_weights(grid1_file, grid2_file, \
               interp_file1, interp_file2, map1_name, \
               map2_name, num_maps, map_method, \
 	      grid1_periodic='.true.', grid2_periodic='.true.')
@@ -46,7 +46,7 @@ map2_name = 'ARCTIC2 to GLORYS Bilinear Mapping'
 num_maps = 1
 map_method = 'bilinear'
 
-pyroms.remapping.compute_remap_weights(grid1_file, grid2_file, \
+pycnal.remapping.compute_remap_weights(grid1_file, grid2_file, \
               interp_file1, interp_file2, map1_name, \
               map2_name, num_maps, map_method, \
 	      grid1_periodic='.true.', grid2_periodic='.true.')
@@ -63,7 +63,7 @@ map2_name = 'ARCTIC2 to GLORYS Bilinear Mapping'
 num_maps = 1
 map_method = 'bilinear'
 
-pyroms.remapping.compute_remap_weights(grid1_file, grid2_file, \
+pycnal.remapping.compute_remap_weights(grid1_file, grid2_file, \
               interp_file1, interp_file2, map1_name, \
               map2_name, num_maps, map_method, \
 	      grid1_periodic='.true.', grid2_periodic='.true.')
@@ -80,7 +80,7 @@ map2_name = 'ARCTIC2 to GLORYS Bilinear Mapping'
 num_maps = 1
 map_method = 'bilinear'
 
-pyroms.remapping.compute_remap_weights(grid1_file, grid2_file, \
+pycnal.remapping.compute_remap_weights(grid1_file, grid2_file, \
               interp_file1, interp_file2, map1_name, \
               map2_name, num_maps, map_method, \
 	      grid1_periodic='.true.', grid2_periodic='.true.')
@@ -97,7 +97,7 @@ map2_name = 'ARCTIC2 to GLORYS Bilinear Mapping'
 num_maps = 1
 map_method = 'bilinear'
 
-pyroms.remapping.compute_remap_weights(grid1_file, grid2_file, \
+pycnal.remapping.compute_remap_weights(grid1_file, grid2_file, \
               interp_file1, interp_file2, map1_name, \
               map2_name, num_maps, map_method, \
 	      grid1_periodic='.true.', grid2_periodic='.true.')

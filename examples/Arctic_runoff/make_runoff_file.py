@@ -2,8 +2,8 @@ import numpy as np
 import netCDF4 as netCDF
 from datetime import datetime
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 
 #You need to edit and run compute_daitren_remap_weights.py first
 #then edit and run make_ARCTIC2_runoff.py to generate the runoff file.
@@ -38,7 +38,7 @@ for year in range(1948,2008):
 
 
 # load ARCTIC2 grid object
-grd = pyroms.grid.get_ROMS_grid('ARCTIC2')
+grd = pycnal.grid.get_ROMS_grid('ARCTIC2')
 
 
 # define some variables
@@ -98,7 +98,7 @@ idx = []
 idy = []
 maskl = grd.hgrid.mask_rho.copy()
 for w in range(width):
-    lit = pyroms_toolbox.get_littoral(maskl)
+    lit = pycnal_toolbox.get_littoral(maskl)
     idx.extend(lit[0])
     idy.extend(lit[1])
     maskl[lit] = 0
@@ -113,10 +113,10 @@ nct=0
 for t in range(nt):
     print('Remapping runoff for time %f' %time[nct])
     # conservative horizontal interpolation using scrip
-    runoff_raw = pyroms.remapping.remap(data[t,:,:], wts_file, \
+    runoff_raw = pycnal.remapping.remap(data[t,:,:], wts_file, \
                                            spval=spval)
     idx = np.where(runoff_raw != 0)
-    runoff = pyroms_toolbox.move_runoff(runoff_raw, \
+    runoff = pycnal_toolbox.move_runoff(runoff_raw, \
                   np.array(idx).T + 1, np.array(littoral_idx).T + 1, maskl, \
                   grd.hgrid.x_rho, grd.hgrid.y_rho, grd.hgrid.dx, grd.hgrid.dy)
 

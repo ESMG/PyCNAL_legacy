@@ -9,8 +9,8 @@ import time
 from datetime import datetime
 from matplotlib.dates import date2num, num2date
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 import _remapping
 
 class nctime(object):
@@ -45,12 +45,12 @@ def remap_bdry_uv(src_file, src_grd, dst_grd, dmax=0, cdepth=0, kk=0, dst_dir='.
     print('\nCreating destination file', dst_fileu)
     if os.path.exists(dst_fileu) is True:
         os.remove(dst_fileu)
-    pyroms_toolbox.nc_create_roms_file(dst_fileu, dst_grd, nctime)
+    pycnal_toolbox.nc_create_roms_file(dst_fileu, dst_grd, nctime)
     dst_filev = dst_dir + dst_file[:-4] + '_v_bdry_' + dst_grd.name + '.nc'
     print('Creating destination file', dst_filev)
     if os.path.exists(dst_filev) is True:
         os.remove(dst_filev)
-    pyroms_toolbox.nc_create_roms_file(dst_filev, dst_grd, nctime)
+    pycnal_toolbox.nc_create_roms_file(dst_filev, dst_grd, nctime)
 
     # open destination file
     ncu = netCDF.Dataset(dst_fileu, 'a', format='NETCDF3_CLASSIC')
@@ -74,8 +74,8 @@ def remap_bdry_uv(src_file, src_grd, dst_grd, dmax=0, cdepth=0, kk=0, dst_dir='.
     # build intermediate zgrid
     zlevel = -src_grd.z_t[::-1,0,0]
     nzlevel = len(zlevel)
-    dst_zcoord = pyroms.vgrid.z_coordinate(dst_grd.vgrid.h, zlevel, nzlevel)
-    dst_grdz = pyroms.grid.ROMS_Grid(dst_grd.name+'_Z', dst_grd.hgrid, dst_zcoord)
+    dst_zcoord = pycnal.vgrid.z_coordinate(dst_grd.vgrid.h, zlevel, nzlevel)
+    dst_grdz = pycnal.grid.ROMS_Grid(dst_grd.name+'_Z', dst_grd.hgrid, dst_zcoord)
 
     # create variable in destination file
     print('Creating variable u_north')
@@ -174,43 +174,43 @@ def remap_bdry_uv(src_file, src_grd, dst_grd, dmax=0, cdepth=0, kk=0, dst_dir='.
 
     # flood the grid
     print('flood the grid')
-    src_uz = pyroms_toolbox.BGrid_SODA.flood(src_varu, src_grd, Bpos='uv', \
+    src_uz = pycnal_toolbox.BGrid_SODA.flood(src_varu, src_grd, Bpos='uv', \
                 spval=spval, dmax=dmax, cdepth=cdepth, kk=kk)
-    src_vz = pyroms_toolbox.BGrid_SODA.flood(src_varv, src_grd, Bpos='uv', \
+    src_vz = pycnal_toolbox.BGrid_SODA.flood(src_varv, src_grd, Bpos='uv', \
                 spval=spval, dmax=dmax, cdepth=cdepth, kk=kk)
 
     # horizontal interpolation using scrip weights
     print('horizontal interpolation using scrip weights')
-    dst_uz = pyroms.remapping.remap(src_uz, wts_file, \
+    dst_uz = pycnal.remapping.remap(src_uz, wts_file, \
                                       spval=spval)
-    dst_vz = pyroms.remapping.remap(src_vz, wts_file, \
+    dst_vz = pycnal.remapping.remap(src_vz, wts_file, \
                                       spval=spval)
 
     # vertical interpolation from standard z level to sigma
     print('vertical interpolation from standard z level to sigma')
-    dst_u_north = pyroms.remapping.z2roms(dst_uz[::-1, Mp-2:Mp, 0:Lp], \
+    dst_u_north = pycnal.remapping.z2roms(dst_uz[::-1, Mp-2:Mp, 0:Lp], \
                       dst_grdz, dst_grd, Cpos='rho', spval=spval, \
                       flood=False, irange=(0,Lp), jrange=(Mp-2,Mp))
-    dst_u_south = pyroms.remapping.z2roms(dst_uz[::-1, 0:2, 0:Lp], \
+    dst_u_south = pycnal.remapping.z2roms(dst_uz[::-1, 0:2, 0:Lp], \
                       dst_grdz, dst_grd, Cpos='rho', spval=spval, \
                       flood=False, irange=(0,Lp), jrange=(0,2))
-    dst_u_east = pyroms.remapping.z2roms(dst_uz[::-1, 0:Mp, Lp-2:Lp], \
+    dst_u_east = pycnal.remapping.z2roms(dst_uz[::-1, 0:Mp, Lp-2:Lp], \
                       dst_grdz, dst_grd, Cpos='rho', spval=spval, \
                       flood=False, irange=(Lp-2,Lp), jrange=(0,Mp))
-    dst_u_west = pyroms.remapping.z2roms(dst_uz[::-1, 0:Mp, 0:2], \
+    dst_u_west = pycnal.remapping.z2roms(dst_uz[::-1, 0:Mp, 0:2], \
                       dst_grdz, dst_grd, Cpos='rho', spval=spval, \
                       flood=False, irange=(0,2), jrange=(0,Mp))
 
-    dst_v_north = pyroms.remapping.z2roms(dst_vz[::-1, Mp-2:Mp, 0:Lp], \
+    dst_v_north = pycnal.remapping.z2roms(dst_vz[::-1, Mp-2:Mp, 0:Lp], \
                       dst_grdz, dst_grd, Cpos='rho', spval=spval, \
                       flood=False, irange=(0,Lp), jrange=(Mp-2,Mp))
-    dst_v_south = pyroms.remapping.z2roms(dst_vz[::-1, 0:2, 0:Lp], \
+    dst_v_south = pycnal.remapping.z2roms(dst_vz[::-1, 0:2, 0:Lp], \
                       dst_grdz, dst_grd, Cpos='rho', spval=spval, \
                       flood=False, irange=(0,Lp), jrange=(0,2))
-    dst_v_east = pyroms.remapping.z2roms(dst_vz[::-1, 0:Mp, Lp-2:Lp], \
+    dst_v_east = pycnal.remapping.z2roms(dst_vz[::-1, 0:Mp, Lp-2:Lp], \
                       dst_grdz, dst_grd, Cpos='rho', spval=spval, \
                       flood=False, irange=(Lp-2,Lp), jrange=(0,Mp))
-    dst_v_west = pyroms.remapping.z2roms(dst_vz[::-1, 0:Mp, 0:2], \
+    dst_v_west = pycnal.remapping.z2roms(dst_vz[::-1, 0:Mp, 0:2], \
                       dst_grdz, dst_grd, Cpos='rho', spval=spval, \
                       flood=False, irange=(0,2), jrange=(0,Mp))
 

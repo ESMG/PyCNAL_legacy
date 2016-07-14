@@ -5,8 +5,8 @@ import os
 import subprocess
 import numpy as np
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 
 from remap import remap
 from remap_uv import remap_uv
@@ -19,12 +19,12 @@ print('Build IC file from the following file:')
 print(file)
 print(' ')
 
-src_grd = pyroms_toolbox.BGrid_SODA.get_nc_BGrid_SODA('/nfs/P1/Data/SODA/SODA_2.1.6/SODA_grid.cdf', name='SODA_2.1.6', area='npolar', ystart=240)
-dst_grd = pyroms.grid.get_ROMS_grid('ARCTIC2')
+src_grd = pycnal_toolbox.BGrid_SODA.get_nc_BGrid_SODA('/nfs/P1/Data/SODA/SODA_2.1.6/SODA_grid.cdf', name='SODA_2.1.6', area='npolar', ystart=240)
+dst_grd = pycnal.grid.get_ROMS_grid('ARCTIC2')
 
 # remap
 zeta = remap(file, 'ssh', src_grd, dst_grd, dst_dir=dst_dir)
-dst_grd = pyroms.grid.get_ROMS_grid('ARCTIC2', zeta=zeta)
+dst_grd = pycnal.grid.get_ROMS_grid('ARCTIC2', zeta=zeta)
 remap(file, 'temp', src_grd, dst_grd, dst_dir=dst_dir)
 remap(file, 'salt', src_grd, dst_grd, dst_dir=dst_dir)
 remap_uv(file, src_grd, dst_grd, dst_dir=dst_dir)

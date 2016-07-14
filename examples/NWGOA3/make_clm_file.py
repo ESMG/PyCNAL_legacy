@@ -7,8 +7,8 @@ import os
 import sys
 import string
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 import subprocess
 
 irange = None
@@ -21,11 +21,11 @@ def do_file(file):
     var = file[start+1:end]
     print('var is: ' + var)
     if var == 'uv':
-        dst_var = pyroms_toolbox.remapping(['u', 'v'], file,\
+        dst_var = pycnal_toolbox.remapping(['u', 'v'], file,\
                      wts_file,src_grd,dst_grd,rotate_uv=True,\
                      uvar='u', vvar='v')
     else:
-        dst_var = pyroms_toolbox.remapping([var], file,\
+        dst_var = pycnal_toolbox.remapping([var], file,\
                      wts_file,src_grd,dst_grd)
 
 lst_file = []
@@ -39,8 +39,8 @@ lst = lst.split()
 lst_file = lst_file + lst
 
 wts_file = "./remap_weights_PP_COSINE_to_NWGOA3_bilinear_*"
-src_grd = pyroms.grid.get_ROMS_grid('PP_COSINE')
-dst_grd = pyroms.grid.get_ROMS_grid('NWGOA3')
+src_grd = pycnal.grid.get_ROMS_grid('PP_COSINE')
+dst_grd = pycnal.grid.get_ROMS_grid('NWGOA3')
 # Outfile is a parameter to allow you to place these created remap files in a different
 # directory than the one that is default which is where the file came from.
 #processes = 1

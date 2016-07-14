@@ -2,9 +2,6 @@ import numpy as np
 import netCDF4 as netCDF
 from datetime import datetime
 
-import pyroms
-import pyroms_toolbox
-
 
 # load 2-dimentional interannual discharge data 
 # from 1948-2007. See Dai and Trenberth (2002) and Dai et al. (2009)

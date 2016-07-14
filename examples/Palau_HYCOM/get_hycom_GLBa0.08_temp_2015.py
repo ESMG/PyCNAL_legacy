@@ -4,8 +4,8 @@ matplotlib.use('Agg')
 import numpy as np
 import netCDF4
 from datetime import datetime
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 import sys
 
 
@@ -107,7 +107,7 @@ for day in range(1,daysinyear+1):
 
     #create netCDF file
     outfile = 'data/HYCOM_GLBa0.08_%s_%04d_%03d.nc' %(outvarname,year,day)
-    jday = pyroms_toolbox.date2jday(datetime(year, 1, 1)) + day - 1
+    jday = pycnal_toolbox.date2jday(datetime(year, 1, 1)) + day - 1
     create_HYCOM_file(outfile, jday, lon, lat, z, var)
 
 
@@ -132,7 +132,7 @@ if retry == 'True':
 
             #create netCDF file
             outfile = 'data/HYCOM_GLBa0.08_%s_%04d_%03d.nc' %(outvarname,year,day)
-            jday = pyroms_toolbox.date2jday(datetime(year, 1, 1)) + day - 1
+            jday = pycnal_toolbox.date2jday(datetime(year, 1, 1)) + day - 1
             create_HYCOM_file(outfile, jday, lon, lat, z, var)
 
             retry_day.remove(day)

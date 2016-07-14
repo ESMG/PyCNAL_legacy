@@ -1,5 +1,5 @@
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 
 src_varname = ['zeta','temp','salt','u','v','ubar','vbar','uice', \
                'vice','aice','hice','tisrf','snow_thick','sfwat', \
@@ -18,10 +18,10 @@ src_filename = '/archive/u1/uaf/kate/NEP5/run42/weeks_2001/nep5_00?.nc'
 #        '/archive/u1/uaf/kate/NEP5/run42/weeks_2001/nep5_053.nc']
 
 wts_file = "./remap_weights_NEP5_to_BERING_bilinear_*"
-src_grd = pyroms.grid.get_ROMS_grid('NEP5')
-dst_grd = pyroms.grid.get_ROMS_grid('BERING')
+src_grd = pycnal.grid.get_ROMS_grid('NEP5')
+dst_grd = pycnal.grid.get_ROMS_grid('BERING')
 # Outfile is a parameter to allow you to place these created remap files in a different
 # directory than the one that is default which is where the file came from.
-dst_var = pyroms_toolbox.remapping_bound(src_varname, src_filename,\
+dst_var = pycnal_toolbox.remapping_bound(src_varname, src_filename,\
                                    wts_file,src_grd,dst_grd,rotate_uv=False,\
                                    irange=(20,210),jrange=(340,610))

@@ -4,8 +4,8 @@ import matplotlib.colors as colors
 from scipy.signal import medfilt2d
 import netCDF4
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 from ROMS_bathy_smoother import *
 
 
@@ -46,24 +46,24 @@ latp=array([lat0, lat1, lat2, lat3])
 
 beta = array([1, 1, 1, 1])
 
-hgrd = pyroms.grid.Gridgen(lonp, latp, beta, (Mp+3,Lp+3), proj=map)
+hgrd = pycnal.grid.Gridgen(lonp, latp, beta, (Mp+3,Lp+3), proj=map)
 
 # if you want to us ethe graphical interface
 #map.drawcoastlines()
 #xp, yp = map(lonp, latp)
-#bry = pyroms.hgrid.BoundaryInteractor(xp, yp, beta, shp=(Mp+3,Lp+3), proj=map)
+#bry = pycnal.hgrid.BoundaryInteractor(xp, yp, beta, shp=(Mp+3,Lp+3), proj=map)
 #hgrd = bry.grd
 
 
 lonv, latv = list(map(hgrd.x_vert, hgrd.y_vert, inverse=True))
-hgrd = pyroms.grid.CGrid_geo(lonv, latv, map)
+hgrd = pycnal.grid.CGrid_geo(lonv, latv, map)
 
 # generate the mask
 for verts in map.coastsegs:
     hgrd.mask_polygon(verts)
 
 # Edit the mask for change
-pyroms.grid.edit_mask_mesh(hgrd, proj=map)
+pycnal.grid.edit_mask_mesh(hgrd, proj=map)
 
 # generate the bathy
 # read in topo data (on a regular lat/lon grid)
@@ -89,14 +89,14 @@ topo = -topo
 
 # fix minimum depth
 hmin = 5
-topo = pyroms_toolbox.change(topo, '<', hmin, hmin)
+topo = pycnal_toolbox.change(topo, '<', hmin, hmin)
 
 # interpolate new bathymetry
 lon, lat = meshgrid(lons, lats)
 h = griddata(lon.flat,lat.flat,topo.flat,hgrd.lon_rho,hgrd.lat_rho)
 
 # insure that depth is always deeper than hmin
-h = pyroms_toolbox.change(h, '<', hmin, hmin)
+h = pycnal_toolbox.change(h, '<', hmin, hmin)
 
 # check bathymetry roughness
 RoughMat = bathy_tools.RoughnessMatrix(h, hgrd.mask_rho)
@@ -118,14 +118,14 @@ theta_b = 0.4
 theta_s = 5.0
 Tcline = 5
 N = 36
-vgrd = pyroms.vgrid.s_coordinate(h, hc, theta_b, theta_s, Tcline, N)
+vgrd = pycnal.vgrid.s_coordinate(h, hc, theta_b, theta_s, Tcline, N)
 
 #ROMS grid
 grd_name = 'test'
-grd = pyroms.grid.ROMS_Grid(grd_name, hgrd, vgrd)
+grd = pycnal.grid.ROMS_Grid(grd_name, hgrd, vgrd)
 
 #write grid to netcdf file
-pyroms.grid.write_ROMS_grid(grd, filename='grd.nc')
+pycnal.grid.write_ROMS_grid(grd, filename='grd.nc')
 
 
 

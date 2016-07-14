@@ -9,8 +9,8 @@ import time
 from datetime import datetime
 from matplotlib.dates import date2num, num2date
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 import _remapping
 
 class nctime(object):
@@ -42,7 +42,7 @@ def remap(src_file, src_varname, src_grd, dst_grd, dmax=0, cdepth=0, kk=0, dst_d
     print('\nCreating file', dst_file)
     if os.path.exists(dst_file) is True:
         os.remove(dst_file)
-    pyroms_toolbox.nc_create_roms_file(dst_file, dst_grd, nctime)
+    pycnal_toolbox.nc_create_roms_file(dst_file, dst_grd, nctime)
 
     # open IC file
     nc = netCDF.Dataset(dst_file, 'a', format='NETCDF3_CLASSIC')
@@ -105,8 +105,8 @@ def remap(src_file, src_varname, src_grd, dst_grd, dmax=0, cdepth=0, kk=0, dst_d
         # build intermediate zgrid
         zlevel = -z[::-1,0,0]
         nzlevel = len(zlevel)
-        dst_zcoord = pyroms.vgrid.z_coordinate(dst_grd.vgrid.h, zlevel, nzlevel)
-        dst_grdz = pyroms.grid.ROMS_Grid(dst_grd.name+'_Z', dst_grd.hgrid, dst_zcoord)
+        dst_zcoord = pycnal.vgrid.z_coordinate(dst_grd.vgrid.h, zlevel, nzlevel)
+        dst_grdz = pycnal.grid.ROMS_Grid(dst_grd.name+'_Z', dst_grd.hgrid, dst_zcoord)
 
 
     # create variable in file
@@ -126,20 +126,20 @@ def remap(src_file, src_varname, src_grd, dst_grd, dmax=0, cdepth=0, kk=0, dst_d
     if ndim == 3:
         # flood the grid
         print('flood the grid')
-        src_varz = pyroms_toolbox.BGrid_SODA.flood(src_var, src_grd, Bpos=Bpos, spval=spval, \
+        src_varz = pycnal_toolbox.BGrid_SODA.flood(src_var, src_grd, Bpos=Bpos, spval=spval, \
                                 dmax=dmax, cdepth=cdepth, kk=kk)
     else:
         src_varz = src_var
 
     # horizontal interpolation using scrip weights
     print('horizontal interpolation using scrip weights')
-    dst_varz = pyroms.remapping.remap(src_varz, wts_file, \
+    dst_varz = pycnal.remapping.remap(src_varz, wts_file, \
                                           spval=spval)
 
     if ndim == 3:
         # vertical interpolation from standard z level to sigma
         print('vertical interpolation from standard z level to sigma')
-        dst_var = pyroms.remapping.z2roms(dst_varz[::-1,:,:], dst_grdz, \
+        dst_var = pycnal.remapping.z2roms(dst_varz[::-1,:,:], dst_grdz, \
                           dst_grd, Cpos=Cpos, spval=spval, flood=False)
     else:
         dst_var = dst_varz

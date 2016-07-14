@@ -4,8 +4,8 @@ matplotlib.use('Agg')
 import numpy as np
 import netCDF4
 from datetime import datetime
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 import sys
 
 
@@ -127,7 +127,7 @@ for day in range(rec_start,rec_end):
 
     #create netCDF file
     nc.variables[outvarname][day_out] = var
-    jday = pyroms_toolbox.date2jday(datetime(year, 1, 1)) + day_out*73/24.
+    jday = pycnal_toolbox.date2jday(datetime(year, 1, 1)) + day_out*73/24.
     nc.variables['ocean_time'][day_out] = jday
     day_out += 1
 
@@ -148,7 +148,7 @@ if retry == 'True':
                 continue
 
             #create netCDF file
-            jday = pyroms_toolbox.date2jday(datetime(year, 1, 1)) + day_out*73/24.
+            jday = pycnal_toolbox.date2jday(datetime(year, 1, 1)) + day_out*73/24.
             nc.variables[outvarname][day_out] = var
             nc.variables['ocean_time'][day_out] = jday
 

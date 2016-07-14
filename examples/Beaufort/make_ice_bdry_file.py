@@ -4,8 +4,8 @@ import subprocess
 import pdb
 from multiprocessing import Pool
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 
 src_varname = ['aice','hice','tisrf','snow_thick', \
                'ti','uice_eastward', 'vice_northward']
@@ -25,8 +25,8 @@ months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'
 part_filename = '/archive/u1/uaf/kate/Arctic2/run46/averages2/arctic2_avg2_1999-'
 
 wts_file = "./remap_weights_ARCTIC2_to_BEAUFORT2_bilinear_*"
-src_grd = pyroms.grid.get_ROMS_grid('ARCTIC2')
-dst_grd = pyroms.grid.get_ROMS_grid('BEAUFORT2')
+src_grd = pycnal.grid.get_ROMS_grid('ARCTIC2')
+dst_grd = pycnal.grid.get_ROMS_grid('BEAUFORT2')
 # Outfile is a parameter to allow you to place these created remap files in a different
 # directory than the one that is default which is where the file came from.
 
@@ -36,12 +36,12 @@ def do_file(month):
     print('working on file '+src_filename)
 # didn't work even with processes=1
 #    pdb.set_trace()
-    dst_var = pyroms_toolbox.remapping_bound(lcopy, src_filename,\
+    dst_var = pycnal_toolbox.remapping_bound(lcopy, src_filename,\
                      wts_file,src_grd,dst_grd,rotate_uv=True,\
                      irange=irange,jrange=jrange, \
                      uvar='uice_eastward', vvar='vice_northward', rotate_part=True)
 #                     uvar='uice', vvar='vice')
-    dst_var = pyroms_toolbox.remapping_bound_sig(src_sigma, src_filename,\
+    dst_var = pycnal_toolbox.remapping_bound_sig(src_sigma, src_filename,\
                      wts_file,src_grd,dst_grd,rotate_sig=True,\
                      irange=irange,jrange=jrange)
 

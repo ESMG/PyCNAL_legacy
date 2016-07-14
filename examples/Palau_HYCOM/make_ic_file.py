@@ -5,8 +5,8 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 
 from remap import remap
 from remap_uv import remap_uv
@@ -21,12 +21,12 @@ print(file)
 print(' ')
 
 src_grd_file = data_dir + '../HYCOM_GLBa0.08_PALAU_grid.nc'
-src_grd = pyroms_toolbox.Grid_HYCOM.get_nc_Grid_HYCOM(src_grd_file)
-dst_grd = pyroms.grid.get_ROMS_grid('PALAU1')
+src_grd = pycnal_toolbox.Grid_HYCOM.get_nc_Grid_HYCOM(src_grd_file)
+dst_grd = pycnal.grid.get_ROMS_grid('PALAU1')
 
 # remap
 zeta = remap(file, 'ssh', src_grd, dst_grd, dst_dir=dst_dir)
-dst_grd = pyroms.grid.get_ROMS_grid('PALAU1', zeta=zeta)
+dst_grd = pycnal.grid.get_ROMS_grid('PALAU1', zeta=zeta)
 remap(file, 'temp', src_grd, dst_grd, dst_dir=dst_dir)
 remap(file, 'salt', src_grd, dst_grd, dst_dir=dst_dir)
 remap_uv(file, src_grd, dst_grd, dst_dir=dst_dir)

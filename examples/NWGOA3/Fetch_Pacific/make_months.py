@@ -8,8 +8,8 @@ import subprocess
 import numpy as np
 from multiprocessing import Pool
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 
 # This script works better sending stdout to a file, then executing that.
 

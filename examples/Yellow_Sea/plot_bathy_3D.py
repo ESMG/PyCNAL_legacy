@@ -5,10 +5,10 @@ from matplotlib import cm, colors
 import matplotlib.collections as collections
 from mpl_toolkits.mplot3d.art3d import Line3DCollection, line_collection_2d_to_3d
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 
-grd = pyroms.grid.get_ROMS_grid('YELLOW')
+grd = pycnal.grid.get_ROMS_grid('YELLOW')
 
 
 lon = grd.hgrid.lon_rho
@@ -28,7 +28,7 @@ pal_norm = colors.BoundaryNorm(vc,ncolors=256, clip = False)
 surf = ax.plot_surface(lon, lat, -h, rstride=1, cstride=1, cmap=pal, norm=pal_norm, linewidth=0, antialiased=False)
 fig.colorbar(surf, shrink=0.9, aspect=40)
 
-coast = pyroms_toolbox.get_coast_line(grd)
+coast = pycnal_toolbox.get_coast_line(grd)
 coast = np.array(coast)
 coast = collections.LineCollection(coast)
 line_collection_2d_to_3d(coast, zs=-1, zdir='z')

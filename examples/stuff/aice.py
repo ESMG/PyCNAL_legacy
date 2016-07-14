@@ -3,8 +3,8 @@ import netCDF4
 import sys
 import subprocess
 import Ngl
-import pyroms
-from pyroms_toolbox import jday2date
+import pycnal
+from pycnal_toolbox import jday2date
 
 #year = int(sys.argv[1])
 #lst_year = [year]
@@ -14,7 +14,7 @@ from pyroms_toolbox import jday2date
 lst = subprocess.check_output('ls months/*.nc', shell=True)
 lst_file = lst.split()
 
-grd = pyroms.grid.get_ROMS_grid('ARCTIC2')
+grd = pycnal.grid.get_ROMS_grid('ARCTIC2')
 
 clat = grd.hgrid.lat_rho
 clon = grd.hgrid.lon_rho

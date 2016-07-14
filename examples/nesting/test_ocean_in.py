@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from pyroms_toolbox import ocean_in
+from pycnal_toolbox import ocean_in
 
 def main():
 #    fname = raw_input("Name of ocean.in file:")

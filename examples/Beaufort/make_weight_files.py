@@ -1,4 +1,4 @@
-import pyroms
+import pycnal
 
 # Part of Arctic2 grid containing the Beaufort
 irange=(370,580)
@@ -6,16 +6,16 @@ jrange=(460,580)
 #irange=None
 #jrange=None
 
-srcgrd = pyroms.grid.get_ROMS_grid('ARCTIC2')
-dstgrd = pyroms.grid.get_ROMS_grid('BEAUFORT2')
+srcgrd = pycnal.grid.get_ROMS_grid('ARCTIC2')
+dstgrd = pycnal.grid.get_ROMS_grid('BEAUFORT2')
 
-pyroms.remapping.make_remap_grid_file(srcgrd,irange=irange,jrange=jrange)
-pyroms.remapping.make_remap_grid_file(srcgrd,Cpos='u',irange=irange,jrange=jrange)
-pyroms.remapping.make_remap_grid_file(srcgrd,Cpos='v',irange=irange,jrange=jrange)
+pycnal.remapping.make_remap_grid_file(srcgrd,irange=irange,jrange=jrange)
+pycnal.remapping.make_remap_grid_file(srcgrd,Cpos='u',irange=irange,jrange=jrange)
+pycnal.remapping.make_remap_grid_file(srcgrd,Cpos='v',irange=irange,jrange=jrange)
 
-pyroms.remapping.make_remap_grid_file(dstgrd)
-pyroms.remapping.make_remap_grid_file(dstgrd,Cpos='u')
-pyroms.remapping.make_remap_grid_file(dstgrd,Cpos='v')
+pycnal.remapping.make_remap_grid_file(dstgrd)
+pycnal.remapping.make_remap_grid_file(dstgrd,Cpos='u')
+pycnal.remapping.make_remap_grid_file(dstgrd,Cpos='v')
 
 type = ['rho','u','v']
 
@@ -32,6 +32,6 @@ for typ in type:
             
         print("Making "+str(interp_file1)+"...")
             
-        pyroms.remapping.compute_remap_weights(grid1_file,grid2_file,\
+        pycnal.remapping.compute_remap_weights(grid1_file,grid2_file,\
                          interp_file1,interp_file2,map1_name,\
                          map2_name,num_maps,map_method)

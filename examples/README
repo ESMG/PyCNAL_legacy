@@ -1,10 +1,10 @@
-Here are some examples of using the pyroms package (plus maybe a few
+Here are some examples of using the pycnal package (plus maybe a few
 plain python examples).
 
 For those of us who don't have the grid information in every ROMS
 output file, the gridid.txt file here is used to provide some
-information to pyroms about our grids. Point to it with the
-PYROMS_GRIDID_FILE environment variable.
+information to pycnal about our grids. Point to it with the
+PYCNAL_GRIDID_FILE environment variable.
 
 ************************************************************************
 *** For all the interpolating, run the make_weight_files.py script   ***
@@ -35,7 +35,7 @@ INTERPOLATING FROM LARGER ROMS DOMAINS:
    See the Beaufort example. The ice boundary script uses multiprocessing,
    by month.
 
-   These all depend on pyroms_toolbox/remapping*.py.
+   These all depend on pycnal_toolbox/remapping*.py.
 
 INTERPOLATING FROM GLOBAL HYCOM:
 

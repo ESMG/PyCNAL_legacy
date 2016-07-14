@@ -1,15 +1,15 @@
-import pyroms
+import pycnal
 
-srcgrd = pyroms.grid.get_ROMS_grid('NEP5')
-dstgrd = pyroms.grid.get_ROMS_grid('BERING')
+srcgrd = pycnal.grid.get_ROMS_grid('NEP5')
+dstgrd = pycnal.grid.get_ROMS_grid('BERING')
 
-pyroms.remapping.make_remap_grid_file(srcgrd)
-pyroms.remapping.make_remap_grid_file(srcgrd,Cpos='u')
-pyroms.remapping.make_remap_grid_file(srcgrd,Cpos='v')
+pycnal.remapping.make_remap_grid_file(srcgrd)
+pycnal.remapping.make_remap_grid_file(srcgrd,Cpos='u')
+pycnal.remapping.make_remap_grid_file(srcgrd,Cpos='v')
 
-pyroms.remapping.make_remap_grid_file(dstgrd)
-pyroms.remapping.make_remap_grid_file(dstgrd,Cpos='u')
-pyroms.remapping.make_remap_grid_file(dstgrd,Cpos='v')
+pycnal.remapping.make_remap_grid_file(dstgrd)
+pycnal.remapping.make_remap_grid_file(dstgrd,Cpos='u')
+pycnal.remapping.make_remap_grid_file(dstgrd,Cpos='v')
 
 type = ['rho','u','v']
 
@@ -25,6 +25,6 @@ for typ in type:
             
         print("Making "+str(interp_file1)+"...")
             
-        pyroms.remapping.compute_remap_weights(grid1_file,grid2_file,\
+        pycnal.remapping.compute_remap_weights(grid1_file,grid2_file,\
                          interp_file1,interp_file2,map1_name,\
                          map2_name,num_maps,map_method)

@@ -8,8 +8,8 @@ import sys
 import numpy as np
 from datetime import datetime
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 
 from remap_clm import remap_clm
 from remap_clm_uv import remap_clm_uv
@@ -21,7 +21,7 @@ resource.setrlimit(resource.RLIMIT_NOFILE, (3000,-1))
 def do_file(file, src_grd, dst_grd):
     dst_dir='./SODA/'
     zeta = remap_clm(file, 'ssh', src_grd, dst_grd, dst_dir=dst_dir)
-    dst_grd = pyroms.grid.get_ROMS_grid('ARCTIC2', zeta=zeta)
+    dst_grd = pycnal.grid.get_ROMS_grid('ARCTIC2', zeta=zeta)
     remap_clm(file, 'temp', src_grd, dst_grd, dst_dir=dst_dir)
     remap_clm(file, 'salt', src_grd, dst_grd, dst_dir=dst_dir)
     remap_clm_uv(file, src_grd, dst_grd, dst_dir=dst_dir)
@@ -78,8 +78,8 @@ print(lst_file)
 print(' ')
 
 src_grd_file = data_dir + '../SODA_grid.cdf'
-src_grd = pyroms_toolbox.BGrid_SODA.get_nc_BGrid_SODA(src_grd_file, name='SODA_2.1.6_ARCTIC2', area='npolar', ystart=240)
-dst_grd = pyroms.grid.get_ROMS_grid('ARCTIC2')
+src_grd = pycnal_toolbox.BGrid_SODA.get_nc_BGrid_SODA(src_grd_file, name='SODA_2.1.6_ARCTIC2', area='npolar', ystart=240)
+dst_grd = pycnal.grid.get_ROMS_grid('ARCTIC2')
 
 processes = 4
 p = Pool(processes)

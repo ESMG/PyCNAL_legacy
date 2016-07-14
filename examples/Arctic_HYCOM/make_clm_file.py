@@ -7,8 +7,8 @@ from datetime import datetime
 import matplotlib
 matplotlib.use('Agg')
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 
 from remap_clm import remap_clm
 from remap_clm_uv import remap_clm_uv
@@ -31,13 +31,13 @@ print('Build CLM file from the following file list:')
 print(lst_file)
 print(' ')
 
-src_grd = pyroms_toolbox.Grid_HYCOM.get_nc_Grid_HYCOM('/archive/u1/uaf/kate/HYCOM/Svalbard/HYCOM_GLBa0.08_North_grid2.nc')
-dst_grd = pyroms.grid.get_ROMS_grid('ARCTIC2')
+src_grd = pycnal_toolbox.Grid_HYCOM.get_nc_Grid_HYCOM('/archive/u1/uaf/kate/HYCOM/Svalbard/HYCOM_GLBa0.08_North_grid2.nc')
+dst_grd = pycnal.grid.get_ROMS_grid('ARCTIC2')
 
 for file in lst_file:
 # remap
     zeta = remap_clm(file, 'ssh', src_grd, dst_grd, dst_dir=dst_dir)
-    dst_grd = pyroms.grid.get_ROMS_grid('ARCTIC2', zeta=zeta)
+    dst_grd = pycnal.grid.get_ROMS_grid('ARCTIC2', zeta=zeta)
     remap_clm(file, 'temp', src_grd, dst_grd, dst_dir=dst_dir)
     remap_clm(file, 'salt', src_grd, dst_grd, dst_dir=dst_dir)
     remap_clm_uv(file, src_grd, dst_grd, dst_dir=dst_dir)

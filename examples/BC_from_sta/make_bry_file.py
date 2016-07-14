@@ -6,7 +6,7 @@ import os
 import sys
 import string
 
-import pyroms
+import pycnal
 from station_bound import *
 import subprocess
 import pdb
@@ -26,8 +26,8 @@ data_dir = '/archive/u1/uaf/kate/NGOA/run05/'
 lst = subprocess.getoutput('ls ' + data_dir + 'nwgoa_sta.nc')
 lst_file = lst.split()
 
-src_grd = pyroms.sta_grid.get_Stations_grid('NWGOA3', lst_file[0])
-dst_grd = pyroms.grid.get_ROMS_grid('GLACIER_BAY')
+src_grd = pycnal.sta_grid.get_Stations_grid('NWGOA3', lst_file[0])
+dst_grd = pycnal.grid.get_ROMS_grid('GLACIER_BAY')
 # Outfile is a parameter to allow you to place these created remap files in a different
 # directory than the one that is default which is where the file came from.
 #processes = 1

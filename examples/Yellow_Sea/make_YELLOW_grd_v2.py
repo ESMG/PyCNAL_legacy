@@ -4,13 +4,13 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 from datetime import datetime
 from scipy.signal import medfilt2d
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 from bathy_smoother import *
 
 
 # get horizontal grid from v1
-grd_v1 = pyroms.grid.get_ROMS_grid('YELLOW')
+grd_v1 = pycnal.grid.get_ROMS_grid('YELLOW')
 hgrd = grd_v1.hgrid
 
 # generate the bathy
@@ -99,8 +99,8 @@ nc.variables['grid_corner_lat'][:] = grid_corner_lat
 nc.close()
 
 # create coral remap file for scrip
-dstgrd = pyroms.grid.get_ROMS_grid('YELLOW')
-pyroms.remapping.make_remap_grid_file(dstgrd, Cpos='rho')
+dstgrd = pycnal.grid.get_ROMS_grid('YELLOW')
+pycnal.remapping.make_remap_grid_file(dstgrd, Cpos='rho')
 
 # compute remap weights
 # input namelist variables for bilinear remapping at rho points
@@ -113,16 +113,16 @@ map2_name = 'YELLOW to SRTM bilinear Mapping'
 num_maps = 1
 map_method = 'bilinear'
 
-pyroms.remapping.compute_remap_weights(grid1_file, grid2_file, \
+pycnal.remapping.compute_remap_weights(grid1_file, grid2_file, \
               interp_file1, interp_file2, map1_name, \
               map2_name, num_maps, map_method)
 
 # remap bathymetry using scrip
-h = pyroms.remapping.remap(z, 'remap_weights_SRTM_to_YELLOW_bilinear.nc', \
+h = pycnal.remapping.remap(z, 'remap_weights_SRTM_to_YELLOW_bilinear.nc', \
                            spval=1e37)
 h = -h
 hmin = 5
-h = pyroms_toolbox.change(h, '<', hmin, hmin)
+h = pycnal_toolbox.change(h, '<', hmin, hmin)
 
 # save raw bathymetry
 hraw = h.copy()
@@ -135,7 +135,7 @@ RoughMat = bathy_tools.RoughnessMatrix(hsmooth, hgrd.mask_rho)
 print('Max Roughness value is: ', RoughMat.max())
 
 # insure that depth is always deeper than hmin
-h = pyroms_toolbox.change(h, '<', hmin, hmin)
+h = pycnal_toolbox.change(h, '<', hmin, hmin)
 
 # set depth to hmin where masked
 idx = np.where(hgrd.mask_rho == 0)
@@ -146,12 +146,12 @@ theta_b = 0.4
 theta_s = 5.0
 Tcline = 5
 N = 30
-vgrd = pyroms.vgrid.s_coordinate(hsmooth, theta_b, theta_s, Tcline, N, hraw=hraw)
+vgrd = pycnal.vgrid.s_coordinate(hsmooth, theta_b, theta_s, Tcline, N, hraw=hraw)
 
 # ROMS grid
 grd_name = 'YELLOW'
-grd = pyroms.grid.ROMS_Grid(grd_name, hgrd, vgrd)
+grd = pycnal.grid.ROMS_Grid(grd_name, hgrd, vgrd)
 
 
 # write grid to netcdf file
-pyroms.grid.write_ROMS_grid(grd, 'YELLOW_grd_v2.nc')
+pycnal.grid.write_ROMS_grid(grd, 'YELLOW_grd_v2.nc')

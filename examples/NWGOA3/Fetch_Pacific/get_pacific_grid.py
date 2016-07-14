@@ -4,8 +4,8 @@
 #import numpy as np
 import netCDF4
 from datetime import datetime
-#import pyroms
-#import pyroms_toolbox
+#import pycnal
+#import pycnal_toolbox
 #import sys
 
 

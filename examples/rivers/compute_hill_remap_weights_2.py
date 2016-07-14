@@ -3,15 +3,15 @@ from datetime import datetime
 import netCDF4 as netCDF
 import pdb
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 
 
 ##  create CI remap file for scrip
 #print 'Create remap grid file for CI grid'
-#dstgrd = pyroms.grid.get_ROMS_grid('CI')
+#dstgrd = pycnal.grid.get_ROMS_grid('CI')
 #dstgrd.hgrid.mask_rho = np.ones(dstgrd.hgrid.mask_rho.shape)
-#pyroms.remapping.make_remap_grid_file(dstgrd, Cpos='rho')
+#pycnal.remapping.make_remap_grid_file(dstgrd, Cpos='rho')
 #
 #
 ### compute remap weights
@@ -27,6 +27,6 @@ num_maps = 1
 map_method = 'conservative'
 
 #pdb.set_trace()
-pyroms.remapping.compute_remap_weights(grid1_file, grid2_file, \
+pycnal.remapping.compute_remap_weights(grid1_file, grid2_file, \
               interp_file1, interp_file2, map1_name, \
               map2_name, num_maps, map_method)

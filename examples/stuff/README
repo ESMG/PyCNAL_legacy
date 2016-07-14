@@ -6,8 +6,8 @@ To be cut and pasted from the file. Some have more than one option
 present, not all meant to be run at the same time.
 
 * caldate.py
-There's another date computer in pyroms, but the one I know how to
-use is caldate:
+There's another date computer in pycnal_toolbox, but the one I know how
+to use is caldate:
 
 In [1]: from caldate import *
 

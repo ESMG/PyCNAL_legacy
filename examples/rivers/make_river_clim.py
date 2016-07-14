@@ -2,8 +2,8 @@ import numpy as np
 import netCDF4 as netCDF
 from datetime import datetime
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 
 
 # load 2-dimentional discharge data 
@@ -18,7 +18,7 @@ eta = nc_rivers.variables['river_Eposition'][:]
 dir = nc_rivers.variables['river_direction'][:]
 
 # load NWGOA grid object
-grd = pyroms.grid.get_ROMS_grid('COOK_INLET_LYON')
+grd = pycnal.grid.get_ROMS_grid('COOK_INLET_LYON')
 
 
 # define some variables

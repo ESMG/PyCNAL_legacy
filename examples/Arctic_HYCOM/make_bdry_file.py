@@ -13,8 +13,8 @@ from multiprocessing import Pool
 #import resource
 #resource.setrlimit(resource.RLIMIT_NOFILE, (3000,-1))
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 
 from remap_bdry import remap_bdry
 from remap_bdry_uv import remap_bdry_uv
@@ -39,12 +39,12 @@ print(lst_file)
 print(' ')
 
 src_grd_file = data_dir + '../HYCOM_GLBa0.08_North_grid2.nc'
-src_grd = pyroms_toolbox.Grid_HYCOM.get_nc_Grid_HYCOM(src_grd_file)
-dst_grd = pyroms.grid.get_ROMS_grid('ARCTIC2')
+src_grd = pycnal_toolbox.Grid_HYCOM.get_nc_Grid_HYCOM(src_grd_file)
+dst_grd = pycnal.grid.get_ROMS_grid('ARCTIC2')
 
 def do_file(file):
     zeta = remap_bdry(file, 'ssh', src_grd, dst_grd, dst_dir=dst_dir)
-    dst_grd2 = pyroms.grid.get_ROMS_grid('ARCTIC2', zeta=zeta)
+    dst_grd2 = pycnal.grid.get_ROMS_grid('ARCTIC2', zeta=zeta)
     remap_bdry(file, 'temp', src_grd, dst_grd2, dst_dir=dst_dir)
     remap_bdry(file, 'salt', src_grd, dst_grd2, dst_dir=dst_dir)
 #    pdb.set_trace()

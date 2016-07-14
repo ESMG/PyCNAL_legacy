@@ -2,8 +2,8 @@ import numpy as np
 from datetime import datetime
 import netCDF4 as netCDF
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 
 
 ##  load 2-dimentional interannual discharge data 
@@ -85,9 +85,9 @@ nc.close()
 
 ##  create Arctic2 remap file for scrip
 print('Create remap grid file for Arctic2 grid')
-dstgrd = pyroms.grid.get_ROMS_grid('ARCTIC2')
+dstgrd = pycnal.grid.get_ROMS_grid('ARCTIC2')
 dstgrd.hgrid.mask_rho = np.ones(dstgrd.hgrid.mask_rho.shape)
-pyroms.remapping.make_remap_grid_file(dstgrd, Cpos='rho')
+pycnal.remapping.make_remap_grid_file(dstgrd, Cpos='rho')
 
 
 ## compute remap weights
@@ -102,6 +102,6 @@ map2_name = 'ARCTIC2 to daitren conservative Mapping'
 num_maps = 1
 map_method = 'conservative'
 
-pyroms.remapping.compute_remap_weights(grid1_file, grid2_file, \
+pycnal.remapping.compute_remap_weights(grid1_file, grid2_file, \
               interp_file1, interp_file2, map1_name, \
               map2_name, num_maps, map_method)

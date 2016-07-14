@@ -2,8 +2,8 @@ import numpy as np
 import netCDF4 as netCDF
 from datetime import datetime
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 
 
 # load 2-dimentional interannual discharge data 
@@ -19,7 +19,7 @@ data = nc_data.variables['runoff'][:]
 
 
 # load CI grid object
-grd = pyroms.grid.get_ROMS_grid('COOK_INLET_LYON')
+grd = pycnal.grid.get_ROMS_grid('COOK_INLET_LYON')
 
 
 # define some variables
@@ -79,7 +79,7 @@ idx = []
 idy = []
 maskl = grd.hgrid.mask_rho.copy()
 for w in range(width):
-    lit = pyroms_toolbox.get_littoral2(maskl)
+    lit = pycnal_toolbox.get_littoral2(maskl)
     idx.extend(lit[0])
     idy.extend(lit[1])
     maskl[lit] = 0
@@ -98,13 +98,13 @@ for t in range(nt-243,nt):
     print(nct+1, 'Remapping runoff for time %f' %time[t])
 #    print 'Remapping runoff for time %f' %time[nct]
     # conservative horizontal interpolation using scrip
-    runoff_raw = pyroms.remapping.remap(data[t,:,:], wts_file, \
+    runoff_raw = pycnal.remapping.remap(data[t,:,:], wts_file, \
                                            spval=spval)
     # Scale runoff to match incoming in Cook Inlet
     nflow = np.sum(runoff_raw)
     runoff_raw = runoff_raw*flow/nflow
     idx = np.where(runoff_raw != 0)
-    runoff = pyroms_toolbox.move_runoff(runoff_raw, \
+    runoff = pycnal_toolbox.move_runoff(runoff_raw, \
                   np.array(idx).T + 1, np.array(littoral_idx).T + 1, maskl, \
                   grd.hgrid.x_rho, grd.hgrid.y_rho, grd.hgrid.dx, grd.hgrid.dy)
 
@@ -128,13 +128,13 @@ for t in range(nt-243):
     print(nct+1, 'Remapping runoff for time %f' %time[t])
 
     # conservative horizontal interpolation using scrip
-    runoff_raw = pyroms.remapping.remap(data[t,:,:], wts_file, \
+    runoff_raw = pycnal.remapping.remap(data[t,:,:], wts_file, \
                                            spval=spval)
     # Scale runoff to match incoming in Cook Inlet
     nflow = np.sum(runoff_raw)
     runoff_raw = runoff_raw*flow/nflow
     idx = np.where(runoff_raw != 0)
-    runoff = pyroms_toolbox.move_runoff(runoff_raw, \
+    runoff = pycnal_toolbox.move_runoff(runoff_raw, \
                   np.array(idx).T + 1, np.array(littoral_idx).T + 1, maskl, \
                   grd.hgrid.x_rho, grd.hgrid.y_rho, grd.hgrid.dx, grd.hgrid.dy)
     # write data in destination file

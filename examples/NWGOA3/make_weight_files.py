@@ -1,16 +1,16 @@
-import pyroms
+import pycnal
 
 # load the grid
-srcgrd = pyroms.grid.get_ROMS_grid('PP_COSINE')
-dstgrd = pyroms.grid.get_ROMS_grid('NWGOA3')
+srcgrd = pycnal.grid.get_ROMS_grid('PP_COSINE')
+dstgrd = pycnal.grid.get_ROMS_grid('NWGOA3')
 
 # make remap grid file for scrip
-pyroms.remapping.make_remap_grid_file(srcgrd)
-pyroms.remapping.make_remap_grid_file(srcgrd, Cpos='u')
-pyroms.remapping.make_remap_grid_file(srcgrd, Cpos='v')
-pyroms.remapping.make_remap_grid_file(dstgrd)
-pyroms.remapping.make_remap_grid_file(dstgrd, Cpos='u')
-pyroms.remapping.make_remap_grid_file(dstgrd, Cpos='v')
+pycnal.remapping.make_remap_grid_file(srcgrd)
+pycnal.remapping.make_remap_grid_file(srcgrd, Cpos='u')
+pycnal.remapping.make_remap_grid_file(srcgrd, Cpos='v')
+pycnal.remapping.make_remap_grid_file(dstgrd)
+pycnal.remapping.make_remap_grid_file(dstgrd, Cpos='u')
+pycnal.remapping.make_remap_grid_file(dstgrd, Cpos='v')
 
 # compute remap weights
 # input namelist variables for bilinear remapping at rho points
@@ -23,7 +23,7 @@ map2_name = 'NWGOA3 to PP_COSINE Bilinear Mapping'
 num_maps = 1
 map_method = 'bilinear'
 
-pyroms.remapping.compute_remap_weights(grid1_file, grid2_file, \
+pycnal.remapping.compute_remap_weights(grid1_file, grid2_file, \
               interp_file1, interp_file2, map1_name, \
               map2_name, num_maps, map_method)
 
@@ -38,7 +38,7 @@ map2_name = 'NWGOA3 to PP_COSINE Bilinear Mapping'
 num_maps = 1
 map_method = 'bilinear'
 
-pyroms.remapping.compute_remap_weights(grid1_file, grid2_file, \
+pycnal.remapping.compute_remap_weights(grid1_file, grid2_file, \
               interp_file1, interp_file2, map1_name, \
               map2_name, num_maps, map_method)
 
@@ -53,7 +53,7 @@ map2_name = 'NWGOA3 to PP_COSINE Bilinear Mapping'
 num_maps = 1
 map_method = 'bilinear'
 
-pyroms.remapping.compute_remap_weights(grid1_file, grid2_file, \
+pycnal.remapping.compute_remap_weights(grid1_file, grid2_file, \
               interp_file1, interp_file2, map1_name, \
               map2_name, num_maps, map_method)
 
@@ -69,7 +69,7 @@ map2_name = 'NWGOA3 to PP_COSINE Bilinear Mapping'
 num_maps = 1
 map_method = 'bilinear'
 
-pyroms.remapping.compute_remap_weights(grid1_file, grid2_file, \
+pycnal.remapping.compute_remap_weights(grid1_file, grid2_file, \
               interp_file1, interp_file2, map1_name, \
               map2_name, num_maps, map_method)
 
@@ -84,6 +84,6 @@ map1_name = 'PP_COSINE to NWGOA3 Bilinear Mapping'
 map2_name = 'NWGOA3 to PP_COSINE Bilinear Mapping'
 num_maps = 1
 
-pyroms.remapping.compute_remap_weights(grid1_file, grid2_file, \
+pycnal.remapping.compute_remap_weights(grid1_file, grid2_file, \
               interp_file1, interp_file2, map1_name, \
               map2_name, num_maps, map_method)

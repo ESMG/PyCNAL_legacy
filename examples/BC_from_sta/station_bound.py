@@ -9,8 +9,8 @@ try:
 except:
   import netCDF3 as netCDF
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 import _remapping
 
 import matplotlib.pyplot as plt
@@ -33,13 +33,13 @@ def station_bound(varname, srcfile, srcgrd, dst_grd, \
     if type(srcgrd).__name__ == 'Stations_Grid':
         srcgrd = srcgrd
     else:
-        srcgrd = pyroms.sta_grid.get_Stations_grid(srcgrd, sta_file=srcfile)
+        srcgrd = pycnal.sta_grid.get_Stations_grid(srcgrd, sta_file=srcfile)
     if type(dst_grd).__name__ == 'ROMS_Grid':
         dst_grd = dst_grd
     else:
-        dst_grd = pyroms.grid.get_ROMS_grid(dst_grd)
+        dst_grd = pycnal.grid.get_ROMS_grid(dst_grd)
 
-#    pyroms.sta_grid.write_Stations_grid(srcgrd, filename='sta_test.nc')
+#    pycnal.sta_grid.write_Stations_grid(srcgrd, filename='sta_test.nc')
 
     # build intermediaire zgrid
     if zlevel is None:
@@ -64,12 +64,12 @@ def station_bound(varname, srcfile, srcgrd, dst_grd, \
     dzlevel[0] = 0.5*(zlevel[1]-zlevel[0])
     dzlevel[-1] = 0.5*(zlevel[-1]-zlevel[-2])
 
-    src_zcoord = pyroms.vgrid.z_coordinate(srcgrd.vgrid.h, zlevel, nzlevel)
-    dst_zcoord = pyroms.vgrid.z_coordinate(dst_grd.vgrid.h, zlevel, nzlevel)
+    src_zcoord = pycnal.vgrid.z_coordinate(srcgrd.vgrid.h, zlevel, nzlevel)
+    dst_zcoord = pycnal.vgrid.z_coordinate(dst_grd.vgrid.h, zlevel, nzlevel)
 #    print "name = ", srcgrd.name
-#    srcgrdz = pyroms.sta_grid.Stations_Grid(srcgrd.name+'_Z', srcgrd.hgrid, src_zcoord)
-    srcgrdz = pyroms.sta_grid.Stations_Grid('stations_Z', srcgrd.hgrid, src_zcoord)
-    dst_grdz = pyroms.grid.ROMS_Grid(dst_grd.name+'_Z', dst_grd.hgrid, dst_zcoord)
+#    srcgrdz = pycnal.sta_grid.Stations_Grid(srcgrd.name+'_Z', srcgrd.hgrid, src_zcoord)
+    srcgrdz = pycnal.sta_grid.Stations_Grid('stations_Z', srcgrd.hgrid, src_zcoord)
+    dst_grdz = pycnal.grid.ROMS_Grid(dst_grd.name+'_Z', dst_grd.hgrid, dst_zcoord)
 
     # varname argument
     if type(varname).__name__ == 'list':
@@ -124,7 +124,7 @@ def station_bound(varname, srcfile, srcgrd, dst_grd, \
         print('Working with file', srcfile[nf], '...')
 
         # get time
-        ocean_time = pyroms.utility.get_nc_var('ocean_time', srcfile[nf])
+        ocean_time = pycnal.utility.get_nc_var('ocean_time', srcfile[nf])
         ntime = len(ocean_time[:])
 
         # trange argument
@@ -137,7 +137,7 @@ def station_bound(varname, srcfile, srcgrd, dst_grd, \
                    + dst_grd.name + '_bdry.nc'
             if os.path.exists(dstfile) is False:
                 print('Creating destination file', dstfile)
-                pyroms_toolbox.nc_create_roms_file(dstfile, dst_grd, \
+                pycnal_toolbox.nc_create_roms_file(dstfile, dst_grd, \
                     ocean_time, lgrid=False)
 
             # open destination file
@@ -161,7 +161,7 @@ def station_bound(varname, srcfile, srcgrd, dst_grd, \
                     Mp = Mp-1
 
                 # get source data
-                src_var = pyroms.utility.get_nc_var(varname[nv], srcfile[nf])
+                src_var = pycnal.utility.get_nc_var(varname[nv], srcfile[nf])
 
                 # determine variable dimension
                 ndim = len(src_var.dimensions)-1
@@ -217,7 +217,7 @@ def station_bound(varname, srcfile, srcgrd, dst_grd, \
                 if ndim == 2:
                     # vertical interpolation from sigma to standard z level
                     print('vertical interpolation from sigma to standard z level')
-                    src_varz = pyroms.remapping.sta2z( \
+                    src_varz = pycnal.remapping.sta2z( \
                                  src_var[nt,:,ssrange[0]:ssrange[1]], \
                                  srcgrd, srcgrdz, Cpos=Cpos, spval=spval, \
                                  srange=ssrange)
@@ -277,19 +277,19 @@ def station_bound(varname, srcfile, srcgrd, dst_grd, \
                 # horizontal placement of stations into target grid.
 
                 if ndim == 2:
-                    dst_var_north = pyroms.remapping.z2roms(dst_varz[:, \
+                    dst_var_north = pycnal.remapping.z2roms(dst_varz[:, \
                           Mp-1:Mp,0:Lp], dst_grdz, dst_grd, Cpos=Cpos, \
                           spval=spval, flood=False, irange=(0,Lp), \
                           jrange=(Mp-1,Mp))
-                    dst_var_south = pyroms.remapping.z2roms(dst_varz[:, \
+                    dst_var_south = pycnal.remapping.z2roms(dst_varz[:, \
                           0:1, :], dst_grdz, dst_grd, Cpos=Cpos, \
                           spval=spval, flood=False, irange=(0,Lp), \
                           jrange=(0,1))
-                    dst_var_east = pyroms.remapping.z2roms(dst_varz[:, \
+                    dst_var_east = pycnal.remapping.z2roms(dst_varz[:, \
                           :, Lp-1:Lp], dst_grdz, dst_grd, Cpos=Cpos, \
                           spval=spval, flood=False, irange=(Lp-1,Lp), \
                           jrange=(0,Mp))
-                    dst_var_west = pyroms.remapping.z2roms(dst_varz[:, \
+                    dst_var_west = pycnal.remapping.z2roms(dst_varz[:, \
                           :, 0:1], dst_grdz, dst_grd, Cpos=Cpos, \
                           spval=spval, flood=False, irange=(0,1), \
                           jrange=(0,Mp))
@@ -337,8 +337,8 @@ def station_bound(varname, srcfile, srcgrd, dst_grd, \
                       'to', dst_grd.name)
 
                 # get source data
-                src_u = pyroms.utility.get_nc_var(uvar, srcfile[nf])
-                src_v = pyroms.utility.get_nc_var(vvar, srcfile[nf])
+                src_u = pycnal.utility.get_nc_var(uvar, srcfile[nf])
+                src_v = pycnal.utility.get_nc_var(vvar, srcfile[nf])
 
                 # get spval
                 try:
@@ -434,7 +434,7 @@ def station_bound(varname, srcfile, srcgrd, dst_grd, \
                 ndim = len(src_v.dimensions)-1
                 if ndim == 3:
                     print('vertical interpolation from sigma to standard z level')
-                    src_uz = pyroms.remapping.sta2z( \
+                    src_uz = pycnal.remapping.sta2z( \
                             src_u[nt,:,ssrange[0]:ssrange[1]], \
                             srcgrd, srcgrdz, Cpos=Cpos_u, spval=spval, \
                             srange=ssrange)
@@ -448,14 +448,14 @@ def station_bound(varname, srcfile, srcgrd, dst_grd, \
                     ssrange = srange
 
                 if ndim == 3:
-                    src_vz = pyroms.remapping.sta2z( \
+                    src_vz = pycnal.remapping.sta2z( \
                             src_v[nt,:,ssrange[0]:ssrange[1]], \
                             srcgrd, srcgrdz, Cpos=Cpos_v, spval=spval, \
                             srange=ssrange)
 
                 else:
                     src_vz = src_v[nt,ssrange[0]:ssrange[1]]
-                    src_vz = pyroms.remapping.flood2d(src_vz, srcgrdz, Cpos=Cpos_v, \
+                    src_vz = pycnal.remapping.flood2d(src_vz, srcgrdz, Cpos=Cpos_v, \
                                       srange=ssrange, spval=spval, \
                                       dmax=dmax)
 
@@ -465,29 +465,29 @@ def station_bound(varname, srcfile, srcgrd, dst_grd, \
                 if ndim == 3:
                     # vertical interpolation from standard z level to sigma
                     print('vertical interpolation from standard z level to sigma')
-                    dst_u_north = pyroms.remapping.z2roms(dst_uz[:, Mp-2:Mp, 0:Lp], \
+                    dst_u_north = pycnal.remapping.z2roms(dst_uz[:, Mp-2:Mp, 0:Lp], \
                          dst_grdz, dst_grd, Cpos='rho', spval=spval, \
                          flood=False, irange=(0,Lp), jrange=(Mp-2,Mp))
-                    dst_u_south = pyroms.remapping.z2roms(dst_uz[:, 0:2, 0:Lp], \
+                    dst_u_south = pycnal.remapping.z2roms(dst_uz[:, 0:2, 0:Lp], \
                          dst_grdz, dst_grd, Cpos='rho', spval=spval, \
                          flood=False, irange=(0,Lp), jrange=(0,2))
-                    dst_u_east = pyroms.remapping.z2roms(dst_uz[:, 0:Mp, Lp-2:Lp], \
+                    dst_u_east = pycnal.remapping.z2roms(dst_uz[:, 0:Mp, Lp-2:Lp], \
                          dst_grdz, dst_grd, Cpos='rho', spval=spval, \
                          flood=False, irange=(Lp-2,Lp), jrange=(0,Mp))
-                    dst_u_west = pyroms.remapping.z2roms(dst_uz[:, 0:Mp, 0:2], \
+                    dst_u_west = pycnal.remapping.z2roms(dst_uz[:, 0:Mp, 0:2], \
                          dst_grdz, dst_grd, Cpos='rho', spval=spval, \
                          flood=False, irange=(0,2), jrange=(0,Mp))
 
-                    dst_v_north = pyroms.remapping.z2roms(dst_vz[:, Mp-2:Mp, 0:Lp], \
+                    dst_v_north = pycnal.remapping.z2roms(dst_vz[:, Mp-2:Mp, 0:Lp], \
                          dst_grdz, dst_grd, Cpos='rho', spval=spval, \
                          flood=False, irange=(0,Lp), jrange=(Mp-2,Mp))
-                    dst_v_south = pyroms.remapping.z2roms(dst_vz[:, 0:2, 0:Lp], \
+                    dst_v_south = pycnal.remapping.z2roms(dst_vz[:, 0:2, 0:Lp], \
                          dst_grdz, dst_grd, Cpos='rho', spval=spval, \
                          flood=False, irange=(0,Lp), jrange=(0,2))
-                    dst_v_east = pyroms.remapping.z2roms(dst_vz[:, 0:Mp, Lp-2:Lp], \
+                    dst_v_east = pycnal.remapping.z2roms(dst_vz[:, 0:Mp, Lp-2:Lp], \
                          dst_grdz, dst_grd, Cpos='rho', spval=spval, \
                          flood=False, irange=(Lp-2,Lp), jrange=(0,Mp))
-                    dst_v_west = pyroms.remapping.z2roms(dst_vz[:, 0:Mp, 0:2], \
+                    dst_v_west = pycnal.remapping.z2roms(dst_vz[:, 0:Mp, 0:2], \
                       dst_grdz, dst_grd, Cpos='rho', spval=spval, \
                       flood=False, irange=(0,2), jrange=(0,Mp))
                 else:

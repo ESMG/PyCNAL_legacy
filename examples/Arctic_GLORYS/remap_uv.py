@@ -9,8 +9,8 @@ import time
 from datetime import datetime
 from matplotlib.dates import date2num, num2date
 
-import pyroms
-import pyroms_toolbox
+import pycnal
+import pycnal_toolbox
 import _remapping
 
 class nctime(object):
@@ -44,12 +44,12 @@ def remap_uv(src_file, src_grd, dst_grd, dmax=0, cdepth=0, kk=0, dst_dir='./'):
     print('\nCreating destination file', dst_fileu)
     if os.path.exists(dst_fileu) is True:
         os.remove(dst_fileu)
-    pyroms_toolbox.nc_create_roms_file(dst_fileu, dst_grd, nctime)
+    pycnal_toolbox.nc_create_roms_file(dst_fileu, dst_grd, nctime)
     dst_filev = dst_dir + dst_file[:-4] + '_v_ic_' + dst_grd.name + '.nc'
     print('Creating destination file', dst_filev)
     if os.path.exists(dst_filev) is True:
         os.remove(dst_filev)
-    pyroms_toolbox.nc_create_roms_file(dst_filev, dst_grd, nctime)
+    pycnal_toolbox.nc_create_roms_file(dst_filev, dst_grd, nctime)
 
     # open destination file
     ncu = netCDF.Dataset(dst_fileu, 'a', format='NETCDF3_64BIT')
@@ -83,8 +83,8 @@ def remap_uv(src_file, src_grd, dst_grd, dmax=0, cdepth=0, kk=0, dst_dir='./'):
     # build intermediate zgrid
     zlevel = -src_grd.z_t[::-1,0,0]
     nzlevel = len(zlevel)
-    dst_zcoord = pyroms.vgrid.z_coordinate(dst_grd.vgrid.h, zlevel, nzlevel)
-    dst_grdz = pyroms.grid.ROMS_Grid(dst_grd.name+'_Z', dst_grd.hgrid, dst_zcoord)
+    dst_zcoord = pycnal.vgrid.z_coordinate(dst_grd.vgrid.h, zlevel, nzlevel)
+    dst_grdz = pycnal.grid.ROMS_Grid(dst_grd.name+'_Z', dst_grd.hgrid, dst_zcoord)
 
     # create variable in destination file
     print('Creating variable u')
@@ -119,29 +119,29 @@ def remap_uv(src_file, src_grd, dst_grd, dmax=0, cdepth=0, kk=0, dst_dir='./'):
 
     # flood the grid
     print('flood the grid', src_varu.shape)
-    src_uz = pyroms_toolbox.CGrid_GLORYS.flood(src_varu, src_grd, Cpos='u', \
+    src_uz = pycnal_toolbox.CGrid_GLORYS.flood(src_varu, src_grd, Cpos='u', \
                 spval=spval, dmax=dmax, cdepth=cdepth, kk=kk)
-    src_vz = pyroms_toolbox.CGrid_GLORYS.flood(src_varv, src_grd, Cpos='v', \
+    src_vz = pycnal_toolbox.CGrid_GLORYS.flood(src_varv, src_grd, Cpos='v', \
                 spval=spval, dmax=dmax, cdepth=cdepth, kk=kk)
 
     # horizontal interpolation using scrip weights
     print('horizontal interpolation using scrip weights')
-    dst_uz = pyroms.remapping.remap(src_uz, wts_file_u, \
+    dst_uz = pycnal.remapping.remap(src_uz, wts_file_u, \
                                       spval=spval)
-    dst_vz = pyroms.remapping.remap(src_vz, wts_file_v, \
+    dst_vz = pycnal.remapping.remap(src_vz, wts_file_v, \
                                       spval=spval)
 
     # vertical interpolation from standard z level to sigma
     print('vertical interpolation from standard z level to sigma')
-    dst_u = pyroms.remapping.z2roms(dst_uz[::-1,:,:], dst_grdz, \
+    dst_u = pycnal.remapping.z2roms(dst_uz[::-1,:,:], dst_grdz, \
                         dst_grd, Cpos='rho', spval=spval, flood=False)
-    dst_v = pyroms.remapping.z2roms(dst_vz[::-1,:,:], dst_grdz,  \
+    dst_v = pycnal.remapping.z2roms(dst_vz[::-1,:,:], dst_grdz,  \
                         dst_grd, Cpos='rho', spval=spval, flood=False)
 
 
     # rotate u,v fields
     src_angle = src_grd.angle
-    src_angle = pyroms.remapping.remap(src_angle, wts_file_a)
+    src_angle = pycnal.remapping.remap(src_angle, wts_file_a)
     dst_angle = dst_grd.hgrid.angle_rho
     angle = dst_angle - src_angle
     angle = np.tile(angle, (dst_grd.vgrid.N, 1, 1))
