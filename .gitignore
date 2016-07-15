@@ -1,4 +1,5 @@
 build
+html
 *.so
 *.o
 *.pyc
