@@ -36,6 +36,7 @@ function ensure_nc_files_match() {
     return $status
 }
 
+rm -f ocean_hgrid.nc ocean_topog.nc
 python CreateFMSgridTopo.py
 ensure_nc_files_match expected_output/ocean_hgrid.nc ocean_hgrid.nc
 ensure_nc_files_match expected_output/ocean_topog.nc ocean_topog.nc
