@@ -3,6 +3,7 @@
 
 import numpy
 import netCDF4
+import Spherical
 
 # Open ROMS grid file
 nc = netCDF4.Dataset('CCS_7k_0-360_fred_grd.nc')
@@ -33,21 +34,10 @@ lat[1::2,1::2] = nc.variables['lat_rho'][1:-1,1:-1] # Cell centers (drop outside
 lat[1::2, ::2] = nc.variables['lat_u'  ][1:-1, :  ] # U-points (drop outside row)
 lat[ ::2,1::2] = nc.variables['lat_v'  ][ :  ,1:-1] # V-points (drop outside column)
 
-def angle_p1p2(p1, p2):
-    """Angle at center of sphere between two points on the surface of the sphere.
-    Positions are given as (latitude,longitude) tuples measured in degrees."""
-    phi1 = numpy.deg2rad( p1[0] )
-    phi2 = numpy.deg2rad( p2[0] )
-    dphi_2 = 0.5 * ( phi2 - phi1 )
-    dlambda_2 = 0.5 * numpy.deg2rad( p2[1] - p1[1] )
-    a = numpy.sin( dphi_2 )**2 + numpy.cos( phi1 ) * numpy.cos( phi2 ) * ( numpy.sin( dlambda_2 )**2 )
-    c = 2. * numpy.arctan2( numpy.sqrt(a), numpy.sqrt( 1. - a ) )
-    return c
-
 # Approximate edge lengths as great arcs
 R = 6370.e3 # Radius of sphere
-dx[:,:] = R * angle_p1p2( (lat[ :,1:],lon[ :,1:]), (lat[:  ,:-1],lon[:  ,:-1]) )
-dy[:,:] = R * angle_p1p2( (lat[1:, :],lon[1:, :]), (lat[:-1,:  ],lon[:-1,:  ]) )
+dx[:,:] = R * Spherical.angle_through_center( (lat[ :,1:],lon[ :,1:]), (lat[:  ,:-1],lon[:  ,:-1]) )
+dy[:,:] = R * Spherical.angle_through_center( (lat[1:, :],lon[1:, :]), (lat[:-1,:  ],lon[:-1,:  ]) )
 
 # Approximate angles using centered differences in interior
 angle[:,1:-1] = numpy.arctan( (lat[:,2:]-lat[:,:-2]) / ((lon[:,2:]-lon[:,:-2]) * numpy.cos(numpy.deg2rad(lat[:,1:-1]))) )
@@ -55,41 +45,8 @@ angle[:,1:-1] = numpy.arctan( (lat[:,2:]-lat[:,:-2]) / ((lon[:,2:]-lon[:,:-2]) *
 angle[:,   0] = numpy.arctan( (lat[:, 1]-lat[:,  0]) / ((lon[:, 1]-lon[:,  0]) * numpy.cos(numpy.deg2rad(lat[:,   0]))) )
 angle[:,  -1] = numpy.arctan( (lat[:,-1]-lat[:, -2]) / ((lon[:,-1]-lon[:, -2]) * numpy.cos(numpy.deg2rad(lat[:,  -1]))) )
 
-def spherical_angle(v1, v2, v3):
-    """Returns angle v2-v1-v3 i.e betweeen v1-v2 and v1-v3."""
-    # vector product between v1 and v2
-    px = v1[1] * v2[2] - v1[2] * v2[1]
-    py = v1[2] * v2[0] - v1[0] * v2[2]
-    pz = v1[0] * v2[1] - v1[1] * v2[0]
-    # vector product between v1 and v3
-    qx = v1[1] * v3[2] - v1[2] * v3[1]
-    qy = v1[2] * v3[0] - v1[0] * v3[2]
-    qz = v1[0] * v3[1] - v1[1] * v3[0]
-
-    ddd = (px * px + py * py + pz * pz) * (qx * qx + qy * qy + qz * qz)
-    ddd = (px * qx + py * qy + pz * qz) / numpy.sqrt(ddd)
-    angle = numpy.arccos( ddd );
-    return angle
-
-def spherical_quad(lat, lon):
-    """Returns area of spherical quad (bounded by great arcs)."""
-    # x,y,z are 3D coordinates
-    d2r = numpy.deg2rad(1.)
-    x = numpy.cos(d2r * lat) * numpy.cos(d2r * lon)
-    y = numpy.cos(d2r * lat) * numpy.sin(d2r * lon)
-    z = numpy.sin(d2r * lat)
-    c0 = (x[ :-1, :-1], y[ :-1, :-1], z[ :-1, :-1])
-    c1 = (x[ :-1,1:  ], y[ :-1,1:  ], z[ :-1,1:  ])
-    c2 = (x[1:  ,1:  ], y[1:  ,1:  ], z[1:  ,1:  ])
-    c3 = (x[1:  , :-1], y[1:  , :-1], z[1:  , :-1])
-    a0 = spherical_angle(c1, c0, c2)
-    a1 = spherical_angle(c2, c1, c3)
-    a2 = spherical_angle(c3, c2, c0)
-    a3 = spherical_angle(c0, c3, c1)
-    return a0 + a1 + a2 + a3 - 2. * numpy.pi
-
 # Approximate cell areas as that of spherical polygon
-area[:,:] = R * R * spherical_quad(lat, lon)
+area[:,:] = R * R * Spherical.quad_area(lat, lon)
 
 # Create a mosaic file
 rg = netCDF4.Dataset('ocean_hgrid.nc', 'w', format='NETCDF3_CLASSIC')
