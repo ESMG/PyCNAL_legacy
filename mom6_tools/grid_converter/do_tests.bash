@@ -37,6 +37,6 @@ function ensure_nc_files_match() {
 }
 
 rm -f ocean_hgrid.nc ocean_topog.nc
-python CreateFMSgridTopo.py
+python convert_ROMS_grid_to_MOM6.py
 ensure_nc_files_match expected_output/ocean_hgrid.nc ocean_hgrid.nc
 ensure_nc_files_match expected_output/ocean_topog.nc ocean_topog.nc
