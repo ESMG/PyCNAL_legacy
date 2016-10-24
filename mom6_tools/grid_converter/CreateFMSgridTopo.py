@@ -2,11 +2,10 @@
 # vim: set fileencoding=utf-8 :
 
 import numpy
-import scipy.io
-import matplotlib.pyplot as plt
+import netCDF4
 
 # Open ROMS grid file
-nc = scipy.io.netcdf_file('CCS_7k_0-360_fred_grd.nc')
+nc = netCDF4.Dataset('CCS_7k_0-360_fred_grd.nc')
 
 nj,ni = nc.variables['lon_rho'].shape
 nj -= 2
@@ -93,7 +92,7 @@ def spherical_quad(lat, lon):
 area[:,:] = R * R * spherical_quad(lat, lon)
 
 # Create a mosaic file
-rg = scipy.io.netcdf_file('ocean_hgrid.nc', 'w')
+rg = netCDF4.Dataset('ocean_hgrid.nc', 'w', format='NETCDF3_CLASSIC')
 
 # Dimensions
 rg.createDimension('nx' , sni  )
@@ -122,7 +121,7 @@ htile[:5] = 'tile1'
 rg.close()
 
 # Create a topography file
-rg = scipy.io.netcdf_file('ocean_topog.nc', 'w')
+rg = netCDF4.Dataset('ocean_topog.nc', 'w', format='NETCDF3_CLASSIC')
 
 # Dimensions
 rg.createDimension('nx', ni)
