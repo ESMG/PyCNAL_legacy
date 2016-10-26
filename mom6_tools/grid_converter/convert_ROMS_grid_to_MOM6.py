@@ -1,6 +1,8 @@
+#!/bin/env python
 # -*- coding: utf-8 -*-
 # vim: set fileencoding=utf-8 :
 
+import sys
 import numpy
 import netCDF4
 import Spherical
@@ -156,14 +158,14 @@ def approximate_MOM6_grid_metrics(mom6_grid):
 
     return mom6_grid
 
-def write_MOM6_supergrid(mom6_grid):
+def write_MOM6_supergrid(mom6_grid, supergrid_filename):
     """Save the MOM6 supergrid data into its own file."""
     num_rows, num_cols = mom6_grid['supergrid']['area'].shape
 
     tile_str = 'tile1'
     string_len = len(tile_str)
 
-    with netCDF4.Dataset('ocean_hgrid.nc', 'w', format='NETCDF3_CLASSIC') as hgrid_ds:
+    with netCDF4.Dataset(supergrid_filename, 'w', format='NETCDF3_CLASSIC') as hgrid_ds:
         # Dimensions
         hgrid_ds.createDimension('nx',  num_cols)
         hgrid_ds.createDimension('nxp', num_cols+1)
@@ -199,11 +201,11 @@ def write_MOM6_supergrid(mom6_grid):
         htile = hgrid_ds.createVariable('tile', 'c', ('string',))
         htile[:string_len] = tile_str
 
-def write_MOM6_topography(mom6_grid):
+def write_MOM6_topography(mom6_grid, topography_filename):
     """Save the MOM6 ocean topography field in a separate file."""
     num_rows, num_cols = mom6_grid['depth'].shape
 
-    with netCDF4.Dataset('ocean_topog.nc', 'w', format='NETCDF3_CLASSIC') as topog_ds:
+    with netCDF4.Dataset(topography_filename, 'w', format='NETCDF3_CLASSIC') as topog_ds:
         # Dimensions
         topog_ds.createDimension('nx', num_cols)
         topog_ds.createDimension('ny', num_rows)
@@ -214,11 +216,29 @@ def write_MOM6_topography(mom6_grid):
         hdepth.units = 'm'
         hdepth[:] = mom6_grid['depth']
 
-# Expecting a ROMS grid file as input
-roms_grid_filename = 'CCS_7k_0-360_fred_grd.nc'
-roms_grid = read_ROMS_grid(roms_grid_filename)
-roms_grid = trim_ROMS_grid(roms_grid)
-mom6_grid = convert_ROMS_to_MOM6(roms_grid)
-mom6_grid = approximate_MOM6_grid_metrics(mom6_grid)
-write_MOM6_supergrid(mom6_grid)
-write_MOM6_topography(mom6_grid)
+def main(argv):
+    """Take a ROMS grid file and output a set of files to represent the MOM6 grid."""
+
+    supergrid_filename  = 'ocean_hgrid.nc'
+    topography_filename = 'ocean_topog.nc'
+
+    if len(argv) == 2:
+        roms_grid_filename = argv[1]
+    else:
+        print 'Usage: %s RGRID' % argv[0]
+        print ''
+        print 'Converts the ROMS horizontal grid stored in the NetCDF file RGRID into'
+        print 'a collection of NetCDF files representing the MOM6 horizontal grid:'
+        print ' - supergrid file ("%s")' % supergrid_filename
+        print ' - topography file ("%s")' % topography_filename
+        exit(1)
+
+    roms_grid = read_ROMS_grid(roms_grid_filename)
+    roms_grid = trim_ROMS_grid(roms_grid)
+    mom6_grid = convert_ROMS_to_MOM6(roms_grid)
+    mom6_grid = approximate_MOM6_grid_metrics(mom6_grid)
+    write_MOM6_supergrid(mom6_grid, supergrid_filename)
+    write_MOM6_topography(mom6_grid, topography_filename)
+
+if __name__ == "__main__":
+    main(sys.argv)
