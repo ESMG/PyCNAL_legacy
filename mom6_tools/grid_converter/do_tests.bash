@@ -14,7 +14,9 @@ function ensure_nc_files_match() {
     fi
 
     # Find all the metadata diffrences (except history)
-    nccmp --metadata --global --force "${NCFILE1}" "${NCFILE2}"
+    # "--warn=eos" to ignore the null at the end of empty strings
+    # (the original files don't have it, but the new ones do)
+    nccmp --metadata --global --force --warn=eos "${NCFILE1}" "${NCFILE2}"
     status=$?
 
     # Indicate if the data differs, without printing out every different value
@@ -38,5 +40,6 @@ function ensure_nc_files_match() {
 
 rm -f ocean_hgrid.nc ocean_topog.nc
 ./convert_ROMS_grid_to_MOM6.py CCS_7k_0-360_fred_grd.nc
-ensure_nc_files_match expected_output/ocean_hgrid.nc ocean_hgrid.nc
-ensure_nc_files_match expected_output/ocean_topog.nc ocean_topog.nc
+ensure_nc_files_match expected_output/ocean_hgrid.nc  ocean_hgrid.nc
+ensure_nc_files_match expected_output/ocean_topog.nc  ocean_topog.nc
+ensure_nc_files_match expected_output/ocean_mosaic.nc ocean_mosaic.nc
