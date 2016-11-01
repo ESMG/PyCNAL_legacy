@@ -5,9 +5,9 @@
 import sys
 import numpy
 import netCDF4
+import os.path
 import datetime
 import subprocess
-import os.path
 
 import Spherical
 
@@ -59,7 +59,7 @@ def read_ROMS_grid(roms_grid_filename):
     """Load the ROMS grid from a NetCDF file."""
 
     subgrids = ['psi', 'rho', 'u', 'v'] # also available: 'vert'
-    fields = ['lon', 'lat', 'mask'] # also available: 'x', 'y'
+    fields = ['lon', 'lat', 'x', 'y', 'mask']
 
     roms_grid = dict()
     with netCDF4.Dataset(roms_grid_filename) as roms_ds:
@@ -69,9 +69,26 @@ def read_ROMS_grid(roms_grid_filename):
             for field in fields:
                 var_name = field + '_' + subgrid
                 roms_grid[subgrid][field] = roms_ds.variables[var_name][:]
+                if (field == 'x') or (field == 'y'):
+                    units = roms_ds.variables[var_name].units.lower()
+                    assert units.startswith('meter')
+                elif (field == 'lat') or (field == 'lon'):
+                    units = roms_ds.variables[var_name].units.lower()
+                    assert units.startswith('degree')
 
         # extract fields that don't follow the above naming pattern
         roms_grid['rho']['h'] = roms_ds.variables['h'][:] # on the rho grid, but not called "h_rho"
+
+        roms_grid['metadata'] = dict()
+
+        spherical = roms_ds.variables['spherical'][:]
+        if (spherical == 0) or (spherical == 'F') or (spherical == 'f'):
+            roms_grid['metadata']['is_spherical'] = False
+        elif (spherical == 1) or (spherical == 'T') or (spherical == 't'):
+            roms_grid['metadata']['is_spherical'] = True
+        else:
+            warn('Unrecognized value for spherical in ROMS grid: %s', str(spherical))
+        print 'spherical = ', roms_grid['metadata']['is_spherical']
 
     return roms_grid
 
@@ -87,6 +104,9 @@ def trim_ROMS_grid(old_grid):
 
     new_grid = dict()
     for subgrid in old_grid.keys():
+        if subgrid == 'metadata':
+            new_grid[subgrid] = dict(old_grid[subgrid])
+            continue
         new_grid[subgrid] = dict()
         trim_rows,trim_cols = trim_subgrid[subgrid]
         for field in old_grid[subgrid].keys():
@@ -119,8 +139,13 @@ def convert_ROMS_to_MOM6(roms_grid):
     mom6_grid['num_rows'] = num_rows
     mom6_grid['num_cols'] = num_cols
 
+    if roms_grid['metadata']['is_spherical']:
+        copy_fields = ['lon', 'lat']
+    else:
+        copy_fields = ['x', 'y']
+
     # Copy points from ROMS grid
-    for field in ['lon', 'lat']:
+    for field in copy_fields:
         mom6_grid['supergrid'][field] = numpy.zeros((num_rows+1,num_cols+1))
         mom6_grid['supergrid'][field][ ::2, ::2] = roms_grid['psi'][field] # outer
         mom6_grid['supergrid'][field][1::2,1::2] = roms_grid['rho'][field] # inner
@@ -131,20 +156,12 @@ def convert_ROMS_to_MOM6(roms_grid):
 
     return mom6_grid
 
-def approximate_MOM6_grid_metrics(mom6_grid):
+def _fill_in_MOM6_grid_metrics_spherical(mom6_grid):
     """Fill in missing MOM6 supergrid metrics by computing best guess
-    values."""
+    values based on latitude and longitude coordinates."""
 
-    num_rows = mom6_grid['num_rows']
-    num_cols = mom6_grid['num_cols']
     lat = mom6_grid['supergrid']['lat']
     lon = mom6_grid['supergrid']['lon']
-
-    # Declare shapes
-    mom6_grid['supergrid']['area']  = numpy.zeros((num_rows,  num_cols  ))
-    mom6_grid['supergrid']['dx']    = numpy.zeros((num_rows+1,num_cols  ))
-    mom6_grid['supergrid']['dy']    = numpy.zeros((num_rows,  num_cols+1))
-    mom6_grid['supergrid']['angle'] = numpy.zeros((num_rows+1,num_cols+1))
 
     # Approximate edge lengths as great arcs
     R = 6370.e3 # Radius of sphere
@@ -162,6 +179,45 @@ def approximate_MOM6_grid_metrics(mom6_grid):
 
     return mom6_grid
 
+def _fill_in_MOM6_grid_metrics_cartesian(mom6_grid):
+    """Fill in missing MOM6 supergrid metrics by computing best guess
+    values based on x and y coordinates."""
+
+    x = mom6_grid['supergrid']['x']
+    y = mom6_grid['supergrid']['y']
+
+    # Compute edge lengths
+    mom6_grid['supergrid']['dx'][:,:] = numpy.sqrt( (x[:,1:] - x[:,:-1])**2 + (y[:,1:] - y[:,:-1])**2 )
+    mom6_grid['supergrid']['dy'][:,:] = numpy.sqrt( (x[1:,:] - x[:-1,:])**2 + (y[1:,:] - y[:-1,:])**2 )
+
+    # Compute angles using centered differences in interior, and side differences on left/right edges
+    mom6_grid['supergrid']['angle'][:,1:-1] = numpy.arctan2( (y[:,2:] - y[:,:-2]), (x[:,2:] - x[:,:-2]) )
+    mom6_grid['supergrid']['angle'][:, 0  ] = numpy.arctan2( (y[:, 1] - y[:, 0 ]), (x[:, 1] - x[:, 0 ]) )
+    mom6_grid['supergrid']['angle'][:,-1  ] = numpy.arctan2( (y[:,-1] - y[:,-2 ]), (x[:,-1] - x[:,-2 ]) )
+
+    # Compute cell areas
+    mom6_grid['supergrid']['area'][:,:] = mom6_grid['supergrid']['dx'][:-1, :] * mom6_grid['supergrid']['dy'][:, :-1]
+
+    return mom6_grid
+
+def approximate_MOM6_grid_metrics(mom6_grid):
+    """Fill in missing MOM6 supergrid metrics by computing best guess
+    values."""
+
+    num_rows = mom6_grid['num_rows']
+    num_cols = mom6_grid['num_cols']
+
+    # Declare shapes
+    mom6_grid['supergrid']['dx']    = numpy.zeros((num_rows+1,num_cols  ))
+    mom6_grid['supergrid']['dy']    = numpy.zeros((num_rows,  num_cols+1))
+    mom6_grid['supergrid']['angle'] = numpy.zeros((num_rows+1,num_cols+1))
+    mom6_grid['supergrid']['area']  = numpy.zeros((num_rows,  num_cols  ))
+
+    if 'lat' in mom6_grid['supergrid']:
+        return _fill_in_MOM6_grid_metrics_spherical(mom6_grid)
+    else:
+        return _fill_in_MOM6_grid_metrics_cartesian(mom6_grid)
+
 def write_MOM6_supergrid_file(supergrid_filename, mom6_grid, tile_str):
     """Save the MOM6 supergrid data into its own file."""
     num_rows, num_cols = mom6_grid['supergrid']['area'].shape
@@ -178,12 +234,20 @@ def write_MOM6_supergrid_file(supergrid_filename, mom6_grid, tile_str):
 
         # Variables & Values
         hx = hgrid_ds.createVariable('x', 'f4', ('nyp','nxp',))
-        hx.units = 'degrees'
-        hx[:] = mom6_grid['supergrid']['lon']
-
         hy = hgrid_ds.createVariable('y', 'f4', ('nyp','nxp',))
-        hy.units = 'degrees'
-        hy[:] = mom6_grid['supergrid']['lat']
+
+        if 'lon' in mom6_grid['supergrid']:
+            hx.units = 'degrees' # TODO: degrees_east?
+            hx[:] = mom6_grid['supergrid']['lon']
+
+            hy.units = 'degrees' # TODO: degrees_north?
+            hy[:] = mom6_grid['supergrid']['lat']
+        else:
+            hx.units = 'meters'
+            hx[:] = mom6_grid['supergrid']['x']
+
+            hy.units = 'meters'
+            hy[:] = mom6_grid['supergrid']['y']
 
         hdx = hgrid_ds.createVariable('dx', 'f4', ('nyp','nx',))
         hdx.units = 'meters'
@@ -198,7 +262,7 @@ def write_MOM6_supergrid_file(supergrid_filename, mom6_grid, tile_str):
         harea[:] = mom6_grid['supergrid']['area']
 
         hangle = hgrid_ds.createVariable('angle_dx', 'f4', ('nyp','nxp',))
-        hangle.units = 'degrees'
+        hangle.units = 'degrees' # TODO: actually computed in radians!
         hangle[:] = mom6_grid['supergrid']['angle']
 
         htile = hgrid_ds.createVariable('tile', 'c', ('string',))
