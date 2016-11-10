@@ -33,13 +33,15 @@ function ensure_nc_files_match() {
     if [ $status -eq 0 ] ; then
 	echo "PASSED"
     else
-	echo "FAILED ($status)"
+	echo "FAILED ($status): ${NCFILE1} ${NCFILE2}"
     fi
     return $status
 }
 
-rm -f ocean_hgrid.nc ocean_topog.nc
+FILES="ocean_hgrid.nc ocean_topog.nc ocean_mosaic.nc land_mask.nc ocean_mask.nc"
+
+rm -f ${FILES}
 ./convert_ROMS_grid_to_MOM6.py CCS_7k_0-360_fred_grd.nc
-ensure_nc_files_match expected_output/ocean_hgrid.nc  ocean_hgrid.nc
-ensure_nc_files_match expected_output/ocean_topog.nc  ocean_topog.nc
-ensure_nc_files_match expected_output/ocean_mosaic.nc ocean_mosaic.nc
+for file in ${FILES}; do
+    ensure_nc_files_match expected_output/${file} ./${file}
+done

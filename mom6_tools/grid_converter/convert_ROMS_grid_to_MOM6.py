@@ -153,6 +153,7 @@ def convert_ROMS_to_MOM6(roms_grid):
         mom6_grid['supergrid'][field][ ::2,1::2] = roms_grid[ 'v' ][field] # between n/s
 
     mom6_grid['depth'] = roms_grid['rho']['h'] * roms_grid['rho']['mask']
+    mom6_grid['mask']  = roms_grid['rho']['mask']
 
     return mom6_grid
 
@@ -336,10 +337,48 @@ def write_MOM6_solo_mosaic_file(mosaic_filename, supergrid_filename, tile_str, a
         hgridtiles[0, :len(tile_str)] = tile_str
 
         # Global attributes
-        mosaic_ds.grid_version = '0.2' # from 
+        mosaic_ds.grid_version = '0.2' # taken from make_solo_mosaic
         mosaic_ds.code_version = '$Name: tikal $' ### for testing
         #mosaic_ds.code_version = get_git_repo_version_info() ### for production
         mosaic_ds.history = get_history_entry(argv)
+
+def write_MOM6_land_mask_file(land_mask_filename, mom6_grid, argv):
+    num_rows, num_cols = mom6_grid['supergrid']['area'].shape
+    with netCDF4.Dataset(land_mask_filename, 'w', format='NETCDF3_CLASSIC') as land_mask_ds:
+        # Dimenisons (of grid cells, not supergrid)
+        land_mask_ds.createDimension('nx', num_cols / 2)
+        land_mask_ds.createDimension('ny', num_rows / 2)
+
+        # Variables & Values
+        hmask = land_mask_ds.createVariable('mask', 'd', ('ny', 'nx'))
+        hmask.standard_name = 'land fraction at T-cell centers'
+        hmask.units = 'none'
+        hmask[:] = numpy.logical_not(mom6_grid['mask'])
+
+        # Global attributes
+        land_mask_ds.grid_version = '0.2' # taken from make_quick_mosaic
+        land_mask_ds.code_version = '$Name: tikal $' ### for testing
+        #land_mask_ds.code_version = get_git_repo_version_info() ### for production
+        land_mask_ds.history = get_history_entry(argv)
+
+def write_MOM6_ocean_mask_file(ocean_mask_filename, mom6_grid, argv):
+    num_rows, num_cols = mom6_grid['supergrid']['area'].shape
+    with netCDF4.Dataset(ocean_mask_filename, 'w', format='NETCDF3_CLASSIC') as ocean_mask_ds:
+        # Dimenisons (of grid cells, not supergrid)
+        ocean_mask_ds.createDimension('nx', num_cols / 2)
+        ocean_mask_ds.createDimension('ny', num_rows / 2)
+
+        # Variables & Values
+        hmask = ocean_mask_ds.createVariable('mask', 'd', ('ny', 'nx'))
+        hmask.standard_name = 'ocean fraction at T-cell centers'
+        hmask.units = 'none'
+        hmask[:] = mom6_grid['mask']
+
+        # Global attributes
+        ocean_mask_ds.grid_version = '0.2' # taken from make_quick_mosaic
+        ocean_mask_ds.code_version = '$Name: tikal $' ### for testing
+        #ocean_mask_ds.code_version = get_git_repo_version_info() ### for production
+        ocean_mask_ds.history = get_history_entry(argv)
 
 def main(argv):
     """Take a ROMS grid file and output a set of files to represent the MOM6 grid."""
@@ -347,6 +386,8 @@ def main(argv):
     supergrid_filename  = 'ocean_hgrid.nc'
     topography_filename = 'ocean_topog.nc'
     mosaic_filename     = 'ocean_mosaic.nc'
+    land_mask_filename  = 'land_mask.nc'
+    ocean_mask_filename = 'ocean_mask.nc'
     tile_str = 'tile1'
 
     if len(argv) == 2:
@@ -367,6 +408,8 @@ def main(argv):
     write_MOM6_supergrid_file(supergrid_filename, mom6_grid, tile_str)
     write_MOM6_topography_file(topography_filename, mom6_grid)
     write_MOM6_solo_mosaic_file(mosaic_filename, supergrid_filename, tile_str, argv)
+    write_MOM6_land_mask_file(land_mask_filename, mom6_grid, argv)
+    write_MOM6_ocean_mask_file(ocean_mask_filename, mom6_grid, argv)
 
 if __name__ == "__main__":
     main(sys.argv)
