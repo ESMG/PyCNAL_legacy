@@ -121,7 +121,42 @@ def trim_ROMS_grid(old_grid):
 
     return new_grid
 
-def convert_ROMS_to_MOM6(roms_grid):
+def get_git_repo_version_info():
+    """Describe the current version of this script as known by Git."""
+    repo_name = 'ESMG/PyCNAL'
+    git_describe =  subprocess.check_output(['git', 'describe', '--all', '--long', '--dirty', '--abbrev=10']).rstrip()
+    return repo_name + ': ' + git_describe
+
+def get_history_entry(argv):
+    """Construct an entry for the global 'history' attribute of a NetCDF file,
+    which is a date and the command used."""
+    today = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d')
+    command = ' '.join(argv)
+    return today + ': ' + command
+
+def setup_MOM6_grid(argv):
+    mom6_grid = dict()
+
+    mom6_grid['filenames'] = dict()
+    mom6_grid['filenames']['supergrid']  = 'ocean_hgrid.nc'
+    mom6_grid['filenames']['topography'] = 'ocean_topog.nc'
+    mom6_grid['filenames']['mosaic']     = 'ocean_mosaic.nc'
+    mom6_grid['filenames']['land_mask']  = 'land_mask.nc'
+    mom6_grid['filenames']['ocean_mask'] = 'ocean_mask.nc'
+
+    mom6_grid['netcdf_info'] = dict()
+    mom6_grid['netcdf_info']['tile_str']      = 'tile1'
+    mom6_grid['netcdf_info']['string_length'] = 255
+    mom6_grid['netcdf_info']['grid_version']  = '0.2' # taken from make_solo_mosaic
+    mom6_grid['netcdf_info']['code_version']  = '$Name: tikal $' ### for testing
+    #mom6_grid['netcdf_info']['code_version']  = get_git_repo_version_info() ### for production
+    mom6_grid['netcdf_info']['history_entry'] = get_history_entry(argv)
+
+    mom6_grid['supergrid'] = dict()
+
+    return mom6_grid
+
+def convert_ROMS_to_MOM6(mom6_grid, roms_grid):
     """Convert the ROMS grid data into a skeleton MOM6 grid, mainly by
     merging the four sets of point locations from the ROMS grid
     into a single supergrid for MOM6."""
@@ -131,9 +166,6 @@ def convert_ROMS_to_MOM6(roms_grid):
     num_rows, num_cols = roms_grid['rho']['lon'].shape
     num_rows *= 2
     num_cols *= 2
-
-    mom6_grid = dict()
-    mom6_grid['supergrid'] = dict()
 
     # Store the size for later
     mom6_grid['num_rows'] = num_rows
@@ -170,6 +202,7 @@ def _fill_in_MOM6_grid_metrics_spherical(mom6_grid):
     mom6_grid['supergrid']['dy'][:,:] = R * Spherical.angle_through_center( (lat[1:, :],lon[1:, :]), (lat[:-1,:  ],lon[:-1,:  ]) )
 
     # Approximate angles using centered differences in interior, and side differences on left/right edges
+    # TODO: Why do something different at the edges when we have extra ROMS points available?
     cos_lat = numpy.cos(numpy.radians(lat))
     mom6_grid['supergrid']['angle'][:,1:-1] = numpy.arctan( (lat[:,2:] - lat[:,:-2]) / ((lon[:,2:] - lon[:,:-2]) * cos_lat[:,1:-1]) )
     mom6_grid['supergrid']['angle'][:, 0  ] = numpy.arctan( (lat[:, 1] - lat[:, 0 ]) / ((lon[:, 1] - lon[:, 0 ]) * cos_lat[:, 0  ]) )
@@ -192,6 +225,7 @@ def _fill_in_MOM6_grid_metrics_cartesian(mom6_grid):
     mom6_grid['supergrid']['dy'][:,:] = numpy.sqrt( (x[1:,:] - x[:-1,:])**2 + (y[1:,:] - y[:-1,:])**2 )
 
     # Compute angles using centered differences in interior, and side differences on left/right edges
+    # TODO: Why do something different at the edges when we have extra ROMS points available?
     mom6_grid['supergrid']['angle'][:,1:-1] = numpy.arctan2( (y[:,2:] - y[:,:-2]), (x[:,2:] - x[:,:-2]) )
     mom6_grid['supergrid']['angle'][:, 0  ] = numpy.arctan2( (y[:, 1] - y[:, 0 ]), (x[:, 1] - x[:, 0 ]) )
     mom6_grid['supergrid']['angle'][:,-1  ] = numpy.arctan2( (y[:,-1] - y[:,-2 ]), (x[:,-1] - x[:,-2 ]) )
@@ -219,13 +253,13 @@ def approximate_MOM6_grid_metrics(mom6_grid):
     else:
         return _fill_in_MOM6_grid_metrics_cartesian(mom6_grid)
 
-def write_MOM6_supergrid_file(supergrid_filename, mom6_grid, tile_str):
+def write_MOM6_supergrid_file(mom6_grid):
     """Save the MOM6 supergrid data into its own file."""
     num_rows, num_cols = mom6_grid['supergrid']['area'].shape
 
-    string_len = len(tile_str)
+    string_len = len(mom6_grid['netcdf_info']['tile_str'])
 
-    with netCDF4.Dataset(supergrid_filename, 'w', format='NETCDF3_CLASSIC') as hgrid_ds:
+    with netCDF4.Dataset(mom6_grid['filenames']['supergrid'], 'w', format='NETCDF3_CLASSIC') as hgrid_ds:
         # Dimensions
         hgrid_ds.createDimension('nx',  num_cols)
         hgrid_ds.createDimension('nxp', num_cols+1)
@@ -267,13 +301,13 @@ def write_MOM6_supergrid_file(supergrid_filename, mom6_grid, tile_str):
         hangle[:] = mom6_grid['supergrid']['angle']
 
         htile = hgrid_ds.createVariable('tile', 'c', ('string',))
-        htile[:] = tile_str
+        htile[:] = mom6_grid['netcdf_info']['tile_str']
 
-def write_MOM6_topography_file(topography_filename, mom6_grid):
+def write_MOM6_topography_file(mom6_grid):
     """Save the MOM6 ocean topography field in a separate file."""
     num_rows, num_cols = mom6_grid['depth'].shape
 
-    with netCDF4.Dataset(topography_filename, 'w', format='NETCDF3_CLASSIC') as topog_ds:
+    with netCDF4.Dataset(mom6_grid['filenames']['topography'], 'w', format='NETCDF3_CLASSIC') as topog_ds:
         # Dimensions
         topog_ds.createDimension('nx', num_cols)
         topog_ds.createDimension('ny', num_rows)
@@ -284,20 +318,12 @@ def write_MOM6_topography_file(topography_filename, mom6_grid):
         hdepth.units = 'm'
         hdepth[:] = mom6_grid['depth']
 
-def get_git_repo_version_info():
-    """Describe the current version of this script as known by Git."""
-    repo_name = 'ESMG/PyCNAL'
-    git_describe =  subprocess.check_output(['git', 'describe', '--all', '--long', '--dirty', '--abbrev=10']).rstrip()
-    return repo_name + ', ' + git_describe
+def _add_global_attributes(mom6_grid, netcdf_dataset):
+    netcdf_dataset.grid_version = mom6_grid['netcdf_info']['grid_version']
+    netcdf_dataset.code_version = mom6_grid['netcdf_info']['code_version']
+    netcdf_dataset.history      = mom6_grid['netcdf_info']['history_entry']
 
-def get_history_entry(argv):
-    """Construct an entry for the global 'history' attribute of a NetCDF file,
-    which is a date and the command used."""
-    today = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d')
-    command = ' '.join(argv)
-    return today + ': ' + command
-
-def write_MOM6_solo_mosaic_file(mosaic_filename, supergrid_filename, tile_str, argv):
+def write_MOM6_solo_mosaic_file(mom6_grid):
     """Write the "solo mosaic" file, which describes to the FMS infrastructure
      where to find the grid file(s).  Based on tools in version 5 of MOM
      (http://www.mom-ocean.org/)."""
@@ -308,10 +334,10 @@ def write_MOM6_solo_mosaic_file(mosaic_filename, supergrid_filename, tile_str, a
     # since we only have one (regional) tile, but I think this feature
     # will be needed if we ever use a tripolar grid.
 
-    with netCDF4.Dataset(mosaic_filename, 'w', format='NETCDF3_CLASSIC') as mosaic_ds:
+    with netCDF4.Dataset(mom6_grid['filenames']['mosaic'], 'w', format='NETCDF3_CLASSIC') as mosaic_ds:
         # Dimenisons
         mosaic_ds.createDimension('ntiles', 1)
-        mosaic_ds.createDimension('string', 255)
+        mosaic_ds.createDimension('string', mom6_grid['netcdf_info']['string_length'])
 
         # Variables & Values
         hmosaic = mosaic_ds.createVariable('mosaic', 'c', ('string',))
@@ -319,7 +345,7 @@ def write_MOM6_solo_mosaic_file(mosaic_filename, supergrid_filename, tile_str, a
         hmosaic.children = 'gridtiles'
         hmosaic.contact_regions = 'contacts'
         hmosaic.grid_descriptor = ''
-        dirname,filename = os.path.split(mosaic_filename)
+        dirname,filename = os.path.split(mom6_grid['filenames']['mosaic'])
         filename,ext = os.path.splitext(filename)
         hmosaic[:len(filename)] = filename
 
@@ -331,20 +357,17 @@ def write_MOM6_solo_mosaic_file(mosaic_filename, supergrid_filename, tile_str, a
         hgridlocation[:len(this_dir)] = this_dir
 
         hgridfiles = mosaic_ds.createVariable('gridfiles', 'c', ('ntiles', 'string',))
-        hgridfiles[0, :len(supergrid_filename)] = supergrid_filename
+        hgridfiles[0, :len(mom6_grid['filenames']['supergrid'])] = mom6_grid['filenames']['supergrid']
 
         hgridtiles = mosaic_ds.createVariable('gridtiles', 'c', ('ntiles', 'string',))
-        hgridtiles[0, :len(tile_str)] = tile_str
+        hgridtiles[0, :len(mom6_grid['netcdf_info']['tile_str'])] = mom6_grid['netcdf_info']['tile_str']
 
         # Global attributes
-        mosaic_ds.grid_version = '0.2' # taken from make_solo_mosaic
-        mosaic_ds.code_version = '$Name: tikal $' ### for testing
-        #mosaic_ds.code_version = get_git_repo_version_info() ### for production
-        mosaic_ds.history = get_history_entry(argv)
+        _add_global_attributes(mom6_grid, mosaic_ds)
 
-def write_MOM6_land_mask_file(land_mask_filename, mom6_grid, argv):
+def write_MOM6_land_mask_file(mom6_grid):
     num_rows, num_cols = mom6_grid['supergrid']['area'].shape
-    with netCDF4.Dataset(land_mask_filename, 'w', format='NETCDF3_CLASSIC') as land_mask_ds:
+    with netCDF4.Dataset(mom6_grid['filenames']['land_mask'], 'w', format='NETCDF3_CLASSIC') as land_mask_ds:
         # Dimenisons (of grid cells, not supergrid)
         land_mask_ds.createDimension('nx', num_cols / 2)
         land_mask_ds.createDimension('ny', num_rows / 2)
@@ -356,14 +379,11 @@ def write_MOM6_land_mask_file(land_mask_filename, mom6_grid, argv):
         hmask[:] = numpy.logical_not(mom6_grid['mask'])
 
         # Global attributes
-        land_mask_ds.grid_version = '0.2' # taken from make_quick_mosaic
-        land_mask_ds.code_version = '$Name: tikal $' ### for testing
-        #land_mask_ds.code_version = get_git_repo_version_info() ### for production
-        land_mask_ds.history = get_history_entry(argv)
+        _add_global_attributes(mom6_grid, land_mask_ds)
 
-def write_MOM6_ocean_mask_file(ocean_mask_filename, mom6_grid, argv):
+def write_MOM6_ocean_mask_file(mom6_grid):
     num_rows, num_cols = mom6_grid['supergrid']['area'].shape
-    with netCDF4.Dataset(ocean_mask_filename, 'w', format='NETCDF3_CLASSIC') as ocean_mask_ds:
+    with netCDF4.Dataset(mom6_grid['filenames']['ocean_mask'], 'w', format='NETCDF3_CLASSIC') as ocean_mask_ds:
         # Dimenisons (of grid cells, not supergrid)
         ocean_mask_ds.createDimension('nx', num_cols / 2)
         ocean_mask_ds.createDimension('ny', num_rows / 2)
@@ -375,20 +395,12 @@ def write_MOM6_ocean_mask_file(ocean_mask_filename, mom6_grid, argv):
         hmask[:] = mom6_grid['mask']
 
         # Global attributes
-        ocean_mask_ds.grid_version = '0.2' # taken from make_quick_mosaic
-        ocean_mask_ds.code_version = '$Name: tikal $' ### for testing
-        #ocean_mask_ds.code_version = get_git_repo_version_info() ### for production
-        ocean_mask_ds.history = get_history_entry(argv)
+        _add_global_attributes(mom6_grid, ocean_mask_ds)
 
 def main(argv):
     """Take a ROMS grid file and output a set of files to represent the MOM6 grid."""
 
-    supergrid_filename  = 'ocean_hgrid.nc'
-    topography_filename = 'ocean_topog.nc'
-    mosaic_filename     = 'ocean_mosaic.nc'
-    land_mask_filename  = 'land_mask.nc'
-    ocean_mask_filename = 'ocean_mask.nc'
-    tile_str = 'tile1'
+    mom6_grid = setup_MOM6_grid(argv)
 
     if len(argv) == 2:
         roms_grid_filename = argv[1]
@@ -397,19 +409,19 @@ def main(argv):
         print ''
         print 'Converts the ROMS horizontal grid stored in the NetCDF file RGRID into'
         print 'a collection of NetCDF files representing the MOM6 horizontal grid:'
-        print ' - supergrid file ("%s")' % supergrid_filename
-        print ' - topography file ("%s")' % topography_filename
+        print ' - supergrid file ("%s")' % mom6_grid['filenames']['supergrid']
+        print ' - topography file ("%s")' % mom6_grid['filenames']['topography']
         exit(1)
 
     roms_grid = read_ROMS_grid(roms_grid_filename)
     roms_grid = trim_ROMS_grid(roms_grid)
-    mom6_grid = convert_ROMS_to_MOM6(roms_grid)
+    mom6_grid = convert_ROMS_to_MOM6(mom6_grid, roms_grid)
     mom6_grid = approximate_MOM6_grid_metrics(mom6_grid)
-    write_MOM6_supergrid_file(supergrid_filename, mom6_grid, tile_str)
-    write_MOM6_topography_file(topography_filename, mom6_grid)
-    write_MOM6_solo_mosaic_file(mosaic_filename, supergrid_filename, tile_str, argv)
-    write_MOM6_land_mask_file(land_mask_filename, mom6_grid, argv)
-    write_MOM6_ocean_mask_file(ocean_mask_filename, mom6_grid, argv)
+    write_MOM6_supergrid_file(mom6_grid)
+    write_MOM6_topography_file(mom6_grid)
+    write_MOM6_solo_mosaic_file(mom6_grid)
+    write_MOM6_land_mask_file(mom6_grid)
+    write_MOM6_ocean_mask_file(mom6_grid)
 
 if __name__ == "__main__":
     main(sys.argv)
