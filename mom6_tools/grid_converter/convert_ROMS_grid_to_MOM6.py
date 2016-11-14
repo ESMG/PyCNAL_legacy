@@ -154,6 +154,8 @@ def setup_MOM6_grid(argv):
 
     mom6_grid['supergrid'] = dict()
 
+    mom6_grid['cell_grid'] = dict()
+
     return mom6_grid
 
 def convert_ROMS_to_MOM6(mom6_grid, roms_grid):
@@ -161,15 +163,17 @@ def convert_ROMS_to_MOM6(mom6_grid, roms_grid):
     merging the four sets of point locations from the ROMS grid
     into a single supergrid for MOM6."""
 
+    ny, nx = roms_grid['rho']['lon'].shape # trimmed
+    mom6_grid['cell_grid']['nx'] = nx
+    mom6_grid['cell_grid']['ny'] = ny
+
     # Double the size of the *trimmed* ROMS grid to merge the four
     # sets of points.
-    num_rows, num_cols = roms_grid['rho']['lon'].shape
-    num_rows *= 2
-    num_cols *= 2
+    nx *= 2
+    ny *= 2
 
-    # Store the size for later
-    mom6_grid['num_rows'] = num_rows
-    mom6_grid['num_cols'] = num_cols
+    mom6_grid['supergrid']['nx'] = nx
+    mom6_grid['supergrid']['ny'] = ny
 
     if roms_grid['metadata']['is_spherical']:
         copy_fields = ['lon', 'lat']
@@ -178,14 +182,15 @@ def convert_ROMS_to_MOM6(mom6_grid, roms_grid):
 
     # Copy points from ROMS grid
     for field in copy_fields:
-        mom6_grid['supergrid'][field] = numpy.zeros((num_rows+1,num_cols+1))
+        mom6_grid['supergrid'][field] = numpy.zeros((ny+1,nx+1))
         mom6_grid['supergrid'][field][ ::2, ::2] = roms_grid['psi'][field] # outer
         mom6_grid['supergrid'][field][1::2,1::2] = roms_grid['rho'][field] # inner
         mom6_grid['supergrid'][field][1::2, ::2] = roms_grid[ 'u' ][field] # between e/w
         mom6_grid['supergrid'][field][ ::2,1::2] = roms_grid[ 'v' ][field] # between n/s
 
-    mom6_grid['depth'] = roms_grid['rho']['h'] * roms_grid['rho']['mask']
-    mom6_grid['mask']  = roms_grid['rho']['mask']
+    mom6_grid['cell_grid']['depth'] = roms_grid['rho']['h'] * roms_grid['rho']['mask']
+    mom6_grid['cell_grid']['ocean_mask'] = roms_grid['rho']['mask']
+    mom6_grid['cell_grid']['land_mask'] = numpy.logical_not(roms_grid['rho']['mask'])
 
     return mom6_grid
 
@@ -239,14 +244,14 @@ def approximate_MOM6_grid_metrics(mom6_grid):
     """Fill in missing MOM6 supergrid metrics by computing best guess
     values."""
 
-    num_rows = mom6_grid['num_rows']
-    num_cols = mom6_grid['num_cols']
+    nx = mom6_grid['supergrid']['nx']
+    ny = mom6_grid['supergrid']['ny']
 
     # Declare shapes
-    mom6_grid['supergrid']['dx']    = numpy.zeros((num_rows+1,num_cols  ))
-    mom6_grid['supergrid']['dy']    = numpy.zeros((num_rows,  num_cols+1))
-    mom6_grid['supergrid']['angle'] = numpy.zeros((num_rows+1,num_cols+1))
-    mom6_grid['supergrid']['area']  = numpy.zeros((num_rows,  num_cols  ))
+    mom6_grid['supergrid']['dx']    = numpy.zeros((ny+1,nx  ))
+    mom6_grid['supergrid']['dy']    = numpy.zeros((ny,  nx+1))
+    mom6_grid['supergrid']['angle'] = numpy.zeros((ny+1,nx+1))
+    mom6_grid['supergrid']['area']  = numpy.zeros((ny,  nx  ))
 
     if 'lat' in mom6_grid['supergrid']:
         return _fill_in_MOM6_grid_metrics_spherical(mom6_grid)
@@ -255,16 +260,17 @@ def approximate_MOM6_grid_metrics(mom6_grid):
 
 def write_MOM6_supergrid_file(mom6_grid):
     """Save the MOM6 supergrid data into its own file."""
-    num_rows, num_cols = mom6_grid['supergrid']['area'].shape
 
+    nx = mom6_grid['supergrid']['nx']
+    ny = mom6_grid['supergrid']['ny']
     string_len = len(mom6_grid['netcdf_info']['tile_str'])
 
     with netCDF4.Dataset(mom6_grid['filenames']['supergrid'], 'w', format='NETCDF3_CLASSIC') as hgrid_ds:
         # Dimensions
-        hgrid_ds.createDimension('nx',  num_cols)
-        hgrid_ds.createDimension('nxp', num_cols+1)
-        hgrid_ds.createDimension('ny',  num_rows)
-        hgrid_ds.createDimension('nyp', num_rows+1)
+        hgrid_ds.createDimension('nx',  nx)
+        hgrid_ds.createDimension('nxp', nx+1)
+        hgrid_ds.createDimension('ny',  ny)
+        hgrid_ds.createDimension('nyp', ny+1)
         hgrid_ds.createDimension('string', string_len)
 
         # Variables & Values
@@ -305,18 +311,19 @@ def write_MOM6_supergrid_file(mom6_grid):
 
 def write_MOM6_topography_file(mom6_grid):
     """Save the MOM6 ocean topography field in a separate file."""
-    num_rows, num_cols = mom6_grid['depth'].shape
 
+    nx = mom6_grid['cell_grid']['nx']
+    ny = mom6_grid['cell_grid']['ny']
     with netCDF4.Dataset(mom6_grid['filenames']['topography'], 'w', format='NETCDF3_CLASSIC') as topog_ds:
         # Dimensions
-        topog_ds.createDimension('nx', num_cols)
-        topog_ds.createDimension('ny', num_rows)
+        topog_ds.createDimension('nx', nx)
+        topog_ds.createDimension('ny', ny)
         topog_ds.createDimension('ntiles', 1)
 
         # Variables & Values
         hdepth = topog_ds.createVariable('depth', 'f4', ('ny','nx',))
         hdepth.units = 'm'
-        hdepth[:] = mom6_grid['depth']
+        hdepth[:] = mom6_grid['cell_grid']['depth']
 
 def _add_global_attributes(mom6_grid, netcdf_dataset):
     netcdf_dataset.grid_version = mom6_grid['netcdf_info']['grid_version']
@@ -366,33 +373,41 @@ def write_MOM6_solo_mosaic_file(mom6_grid):
         _add_global_attributes(mom6_grid, mosaic_ds)
 
 def write_MOM6_land_mask_file(mom6_grid):
-    num_rows, num_cols = mom6_grid['supergrid']['area'].shape
+    """Write the land mask file.  Based on 'make_quick_mosaic' tool in version
+    5 of MOM (http://www.mom-ocean.org/)."""
+
+    nx = mom6_grid['cell_grid']['nx']
+    ny = mom6_grid['cell_grid']['ny']
     with netCDF4.Dataset(mom6_grid['filenames']['land_mask'], 'w', format='NETCDF3_CLASSIC') as land_mask_ds:
         # Dimenisons (of grid cells, not supergrid)
-        land_mask_ds.createDimension('nx', num_cols / 2)
-        land_mask_ds.createDimension('ny', num_rows / 2)
+        land_mask_ds.createDimension('nx', nx)
+        land_mask_ds.createDimension('ny', ny)
 
         # Variables & Values
         hmask = land_mask_ds.createVariable('mask', 'd', ('ny', 'nx'))
         hmask.standard_name = 'land fraction at T-cell centers'
         hmask.units = 'none'
-        hmask[:] = numpy.logical_not(mom6_grid['mask'])
+        hmask[:] = mom6_grid['cell_grid']['land_mask']
 
         # Global attributes
         _add_global_attributes(mom6_grid, land_mask_ds)
 
 def write_MOM6_ocean_mask_file(mom6_grid):
-    num_rows, num_cols = mom6_grid['supergrid']['area'].shape
+    """Write the ocean mask file.  Based on 'make_quick_mosaic' tool in version
+    5 of MOM (http://www.mom-ocean.org/)."""
+
+    nx = mom6_grid['cell_grid']['nx']
+    ny = mom6_grid['cell_grid']['ny']
     with netCDF4.Dataset(mom6_grid['filenames']['ocean_mask'], 'w', format='NETCDF3_CLASSIC') as ocean_mask_ds:
         # Dimenisons (of grid cells, not supergrid)
-        ocean_mask_ds.createDimension('nx', num_cols / 2)
-        ocean_mask_ds.createDimension('ny', num_rows / 2)
+        ocean_mask_ds.createDimension('nx', nx)
+        ocean_mask_ds.createDimension('ny', ny)
 
         # Variables & Values
         hmask = ocean_mask_ds.createVariable('mask', 'd', ('ny', 'nx'))
         hmask.standard_name = 'ocean fraction at T-cell centers'
         hmask.units = 'none'
-        hmask[:] = mom6_grid['mask']
+        hmask[:] = mom6_grid['cell_grid']['ocean_mask']
 
         # Global attributes
         _add_global_attributes(mom6_grid, ocean_mask_ds)
