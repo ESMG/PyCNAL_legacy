@@ -2,7 +2,7 @@
 
 #DESTDIR=/usr/local
 DESTDIR=$HOME/python
-PYCNAL_PATH=$HOME/python/lib/python3.5/site-packages/pycnal
+PYCNAL_PATH=$DESTDIR/lib/python3.5/site-packages/pycnal
 CURDIR=`pwd`
 
 echo
@@ -57,6 +57,6 @@ echo "use, ..."
 echo "Please set the environment variable PYCNAL_GRIDID_FILE"
 echo "to point to your gridid file. A gridid file template"
 echo "is available here:"
-echo "$LOCALDIR/python/pycnal/pycnal/gridid.txt"
+echo "$CURDIR/pycnal/gridid.txt"
 read -p "Press any key to continue or Ctrl+C to quit this install"
 echo

@@ -1,9 +1,9 @@
 SHELL = /bin/sh
 
-prefix = /u1/uaf/kate/python
+prefix = /u1/uaf/kshedstrom/python
 exec_prefix = ${prefix}
 bindir = ${exec_prefix}/bin
-libdir = /u1/uaf/kate/python/lib
+libdir = /u1/uaf/kshedstrom/python/lib
 includedir = ${prefix}/include
 
 INSTALLDIRS =\

@@ -72,8 +72,16 @@ A note on the .so files from fortran: They might now end up with names like:
     scrip.cpython-35m-x86_64-linux-gnu.so
 
 It's OK - they'll load as long as they are in your PYTHONPATH. You might
-also need libgu.so to be in your LD_LIBRARY_PATH. I'm still exploring where
-all the .so files need to be for things to work.
+also need libgu.so to be in your LD_LIBRARY_PATH. I'm getting inconsistent
+results with where the .so files need to be. Best results for me are if I go
+to the site-packages directory where pycnal got installed and copy all the 
+.so files:
+
+    cp pycnal/*.so .
+    cp pycnal_toolbox/*.so .
+    cp bathy_smoother/*.so .
+
+Make sure this site-packages directory is in your PYTHONPATH.
 
 Also, f2py may or may not be called f2py3, depending. It's listed explicitly
 in the scrip makefile and under pycnal_toolbox/pycnal_toolbox/src/makefile.
