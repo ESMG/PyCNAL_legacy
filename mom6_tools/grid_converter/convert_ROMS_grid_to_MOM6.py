@@ -135,17 +135,25 @@ def get_history_entry(argv):
     return today + ': ' + command
 
 def setup_MOM6_grid(argv):
+    tile_str = 'tile1'
+    atmos_tile = 'atmos_mosaic_' + tile_str
+    land_tile  =  'land_mosaic_' + tile_str
+    ocean_tile = 'ocean_mosaic_' + tile_str
+
     mom6_grid = dict()
 
     mom6_grid['filenames'] = dict()
-    mom6_grid['filenames']['supergrid']  = 'ocean_hgrid.nc'
-    mom6_grid['filenames']['topography'] = 'ocean_topog.nc'
-    mom6_grid['filenames']['mosaic']     = 'ocean_mosaic.nc'
-    mom6_grid['filenames']['land_mask']  = 'land_mask.nc'
-    mom6_grid['filenames']['ocean_mask'] = 'ocean_mask.nc'
+    mom6_grid['filenames']['supergrid']            = 'ocean_hgrid.nc'
+    mom6_grid['filenames']['topography']           = 'ocean_topog.nc'
+    mom6_grid['filenames']['mosaic']               = 'ocean_mosaic.nc'
+    mom6_grid['filenames']['land_mask']            = 'land_mask.nc'
+    mom6_grid['filenames']['ocean_mask']           = 'ocean_mask.nc'
+    mom6_grid['filenames']['atmos_land_exchange']  = '%sX%s.nc' % (atmos_tile,  land_tile)
+    mom6_grid['filenames']['atmos_ocean_exchange'] = '%sX%s.nc' % (atmos_tile, ocean_tile)
+    mom6_grid['filenames']['land_ocean_exchange']  = '%sX%s.nc' % ( land_tile, ocean_tile)
 
     mom6_grid['netcdf_info'] = dict()
-    mom6_grid['netcdf_info']['tile_str']      = 'tile1'
+    mom6_grid['netcdf_info']['tile_str']      = tile_str
     mom6_grid['netcdf_info']['string_length'] = 255
     mom6_grid['netcdf_info']['grid_version']  = '0.2' # taken from make_solo_mosaic
     mom6_grid['netcdf_info']['code_version']  = '$Name: tikal $' ### for testing
@@ -194,7 +202,7 @@ def convert_ROMS_to_MOM6(mom6_grid, roms_grid):
 
     return mom6_grid
 
-def _fill_in_MOM6_grid_metrics_spherical(mom6_grid):
+def _fill_in_MOM6_supergrid_metrics_spherical(mom6_grid):
     """Fill in missing MOM6 supergrid metrics by computing best guess
     values based on latitude and longitude coordinates."""
 
@@ -218,7 +226,7 @@ def _fill_in_MOM6_grid_metrics_spherical(mom6_grid):
 
     return mom6_grid
 
-def _fill_in_MOM6_grid_metrics_cartesian(mom6_grid):
+def _fill_in_MOM6_supergrid_metrics_cartesian(mom6_grid):
     """Fill in missing MOM6 supergrid metrics by computing best guess
     values based on x and y coordinates."""
 
@@ -240,6 +248,63 @@ def _fill_in_MOM6_grid_metrics_cartesian(mom6_grid):
 
     return mom6_grid
 
+def _calculate_MOM6_cell_grid_area(mom6_grid):
+    """Compute the area for the MOM6 cells (not the sub-cells of the
+    supergrid)."""
+
+# This is the desired algorithm, but for comparison to output of original tool,
+# we need to calculate areas differently...
+#    # Combine areas of smaller supergrid cells into areas of cell-grid cells
+#    a00 = mom6_grid['supergrid']['area'][0::2,0::2]
+#    a01 = mom6_grid['supergrid']['area'][0::2,1::2]
+#    a10 = mom6_grid['supergrid']['area'][1::2,0::2]
+#    a11 = mom6_grid['supergrid']['area'][1::2,1::2]
+#    mom6_grid['cell_grid']['area'] = a00 + a01 + a10 + a11
+
+    # For testing, compute cell areas exactly like "make_quick_mosaic" tool
+    nx = mom6_grid['cell_grid']['nx']
+    ny = mom6_grid['cell_grid']['ny']
+    mom6_grid['cell_grid']['area'] = numpy.zeros((ny,nx))
+    lonb = numpy.radians(mom6_grid['supergrid']['lon'][::2,::2].astype('f4').astype('d'))
+    latb = numpy.radians(mom6_grid['supergrid']['lat'][::2,::2].astype('f4').astype('d'))
+
+    def calculate_poly_area(x, y):
+        """Given a list of lat/lon vertices, compute the area between them.  Ported from
+        C to Python directly from make_quick_mosaic code, for consistency in output."""
+    
+        # TODO: what if we have x/y instead of lat/lon?
+        SMALL_VALUE = 1.0e-10
+        RADIUS = 6371000.0
+        area = 0.0
+        for i in range(len(x)):
+            ip = (i + 1) % len(x)
+            dx = x[ip] - x[i]
+            if dx > numpy.pi:
+                dx = dx - 2.0 * numpy.pi
+            if dx < -numpy.pi:
+                dx = dx + 2.0 * numpy.pi
+            if dx == 0.0:
+                continue
+    
+            lat1 = y[ip]
+            lat2 = y[i]
+            # cheap area calculation along latitude
+            if abs(lat1 - lat2) < SMALL_VALUE:
+                dat = 1.0 # small value approximation
+            else:
+                dy = 0.5 * (lat1 - lat2)
+                dat = numpy.sin(dy) / dy
+            area -= dx * numpy.sin(0.5 * (lat1 + lat2)) * dat
+        return abs(area) * RADIUS * RADIUS
+
+    for j in range(ny):
+        for i in range(nx):
+            cell_corners_x = numpy.array([lonb[j+0,i+0], lonb[j+0,i+1], lonb[j+1,i+1], lonb[j+1,i+0]])
+            cell_corners_y = numpy.array([latb[j+0,i+0], latb[j+0,i+1], latb[j+1,i+1], latb[j+1,i+0]])
+            mom6_grid['cell_grid']['area'][j,i] = calculate_poly_area(cell_corners_x, cell_corners_y)
+
+    return mom6_grid
+
 def approximate_MOM6_grid_metrics(mom6_grid):
     """Fill in missing MOM6 supergrid metrics by computing best guess
     values."""
@@ -254,9 +319,13 @@ def approximate_MOM6_grid_metrics(mom6_grid):
     mom6_grid['supergrid']['area']  = numpy.zeros((ny,  nx  ))
 
     if 'lat' in mom6_grid['supergrid']:
-        return _fill_in_MOM6_grid_metrics_spherical(mom6_grid)
+        mom6_grid = _fill_in_MOM6_supergrid_metrics_spherical(mom6_grid)
     else:
-        return _fill_in_MOM6_grid_metrics_cartesian(mom6_grid)
+        mom6_grid = _fill_in_MOM6_supergrid_metrics_cartesian(mom6_grid)
+
+    mom6_grid = _calculate_MOM6_cell_grid_area(mom6_grid)
+
+    return mom6_grid
 
 def write_MOM6_supergrid_file(mom6_grid):
     """Save the MOM6 supergrid data into its own file."""
@@ -412,6 +481,66 @@ def write_MOM6_ocean_mask_file(mom6_grid):
         # Global attributes
         _add_global_attributes(mom6_grid, ocean_mask_ds)
 
+def write_MOM6_exchange_grid_file(mom6_grid, name1, name2):
+    """Write one of the three exchange grid files (depending on name1 and name2).
+    Based on 'make_quick_mosaic' tool in version 5 of MOM (http://www.mom-ocean.org/)."""
+
+    # calculate the exchange grid
+
+    mask = mom6_grid['cell_grid'][name2 + '_mask']
+
+    tile_cells_j, tile_cells_i = numpy.where(mask == 1)
+    tile_cells = numpy.column_stack((tile_cells_i, tile_cells_j)) + 1 # +1 converts from Python indices to Fortran
+    xgrid_area = mom6_grid['cell_grid']['area'][mask == 1]
+    ncells = len(xgrid_area)
+    tile_dist = numpy.zeros((ncells,2))
+
+    # write out exchange grid file
+
+    filename_key = '%s_%s_exchange' % (name1, name2)
+    filename = mom6_grid['filenames'][filename_key]
+
+    with netCDF4.Dataset(filename, 'w', format='NETCDF3_CLASSIC') as exchange_ds:
+        exchange_ds.grid_version = mom6_grid['netcdf_info']['grid_version']
+        exchange_ds.code_version = mom6_grid['netcdf_info']['code_version']
+        exchange_ds.history = mom6_grid['netcdf_info']['history_entry']
+
+        exchange_ds.createDimension('string', mom6_grid['netcdf_info']['string_length'])
+        exchange_ds.createDimension('ncells', ncells)
+        exchange_ds.createDimension('two', 2)
+
+        contact_str = '{0}_mosaic:{2}::{1}_mosaic:{2}'.format(name1, name2, mom6_grid['netcdf_info']['tile_str'])
+        hcontact = exchange_ds.createVariable('contact', 'c', ('string',))
+        hcontact.standard_name = 'grid_contact_spec'
+        hcontact.contact_type = 'exchange'
+        hcontact.parent1_cell = 'tile1_cell'
+        hcontact.parent2_cell = 'tile2_cell'
+        hcontact.xgrid_area_field = 'xgrid_area'
+        hcontact.distant_to_parent1_centroid = 'tile1_distance'
+        hcontact.distant_to_parent2_centroid = 'tile2_distance'
+        hcontact[0:len(contact_str)] = contact_str
+
+        htile1_cell = exchange_ds.createVariable('tile1_cell', 'i', ('ncells', 'two'))
+        htile1_cell.standard_name = 'parent_cell_indices_in_mosaic1'
+        htile1_cell[:] = tile_cells
+
+        htile2_cell = exchange_ds.createVariable('tile2_cell', 'i', ('ncells', 'two'))
+        htile2_cell.standard_name = 'parent_cell_indices_in_mosaic2'
+        htile2_cell[:] = tile_cells
+
+        hxgrid_area = exchange_ds.createVariable('xgrid_area', 'd', ('ncells',))
+        hxgrid_area.standard_name = 'exchange_grid_area'
+        hxgrid_area.units = 'm2'
+        hxgrid_area[:] = xgrid_area
+
+        htile1_dist = exchange_ds.createVariable('tile1_distance', 'd', ('ncells', 'two'))
+        htile1_dist.standard_name = 'distance_from_parent1_cell_centroid'
+        htile1_dist[:] = tile_dist
+
+        htile2_dist = exchange_ds.createVariable('tile2_distance', 'd', ('ncells', 'two'))
+        htile2_dist.standard_name = 'distance_from_parent2_cell_centroid'
+        htile2_dist[:] = tile_dist
+
 def main(argv):
     """Take a ROMS grid file and output a set of files to represent the MOM6 grid."""
 
@@ -437,6 +566,9 @@ def main(argv):
     write_MOM6_solo_mosaic_file(mom6_grid)
     write_MOM6_land_mask_file(mom6_grid)
     write_MOM6_ocean_mask_file(mom6_grid)
+    write_MOM6_exchange_grid_file(mom6_grid, 'atmos',  'land')
+    write_MOM6_exchange_grid_file(mom6_grid, 'atmos', 'ocean')
+    write_MOM6_exchange_grid_file(mom6_grid,  'land', 'ocean')
 
 if __name__ == "__main__":
     main(sys.argv)
