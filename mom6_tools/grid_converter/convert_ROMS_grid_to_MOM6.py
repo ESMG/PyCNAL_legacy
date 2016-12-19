@@ -143,6 +143,11 @@ def setup_MOM6_grid(argv):
     mom6_grid = dict()
 
     mom6_grid['filenames'] = dict()
+
+    # Always use './' as the directory for files, since FMS always runs from the
+    # "INPUT" directory
+    mom6_grid['filenames']['directory']            = './'
+
     mom6_grid['filenames']['supergrid']            = 'ocean_hgrid.nc'
     mom6_grid['filenames']['topography']           = 'ocean_topog.nc'
     mom6_grid['filenames']['mosaic']               = 'ocean_mosaic.nc'
@@ -425,11 +430,9 @@ def write_MOM6_solo_mosaic_file(mom6_grid):
         filename,ext = os.path.splitext(filename)
         hmosaic[:len(filename)] = filename
 
-        # Always use './' as the directory since FMS always runs from the
-        # "INPUT" directory
         hgridlocation = mosaic_ds.createVariable('gridlocation', 'c', ('string',))
         hgridlocation.standard_name = 'grid_file_location'
-        this_dir = './'
+        this_dir = mom6_grid['filenames']['directory']
         hgridlocation[:len(this_dir)] = this_dir
 
         hgridfiles = mosaic_ds.createVariable('gridfiles', 'c', ('ntiles', 'string',))
@@ -541,6 +544,54 @@ def write_MOM6_exchange_grid_file(mom6_grid, name1, name2):
         htile2_dist.standard_name = 'distance_from_parent2_cell_centroid'
         htile2_dist[:] = tile_dist
 
+def write_MOM6_coupler_mosaic_file(mom6_grid):
+    """Write the compler mosaic file, which references all the rest.
+    Based on 'make_quick_mosaic' tool in version 5 of MOM (http://www.mom-ocean.org/)."""
+
+    def add_string_var_1d(fid, var_name, standard_name, value):
+        """Creates and stores values for a 1-dimensional string variable."""
+        id_var = fid.createVariable(var_name, 'c', ('string',))
+        id_var.standard_name = standard_name
+        id_var[0:len(value)] = value
+  
+    def add_string_var_2d(fid, var_name, dim_name, standard_name, value):
+        """Creates and stores values for a 2-dimensional string variable, for
+        which the first dimension has length 1."""
+        id_var = fid.createVariable(var_name, 'c', (dim_name, 'string'))
+        id_var.standard_name = standard_name
+        id_var[0, 0:len(value)] = value
+
+    with netCDF4.Dataset('mosaic.nc', 'w', format='NETCDF3_CLASSIC') as mosaic_ds:
+        mosaic_ds.grid_version = mom6_grid['netcdf_info']['grid_version']
+        mosaic_ds.code_version = mom6_grid['netcdf_info']['code_version']
+        mosaic_ds.history      = mom6_grid['netcdf_info']['history_entry']
+      
+        mosaic_ds.createDimension('string', mom6_grid['netcdf_info']['string_length'])
+        mosaic_ds.createDimension('nfile_aXo', 1)
+        mosaic_ds.createDimension('nfile_aXl', 1)
+        mosaic_ds.createDimension('nfile_lXo', 1)
+
+        # same mosaic file for all three -- just like when "make_solo_mosaic" is used
+      
+        add_string_var_1d(mosaic_ds, 'atm_mosaic_dir',  'directory_storing_atmosphere_mosaic', mom6_grid['filenames']['directory'])
+        add_string_var_1d(mosaic_ds, 'atm_mosaic_file', 'atmosphere_mosaic_file_name',         mom6_grid['filenames']['mosaic'])
+        add_string_var_1d(mosaic_ds, 'atm_mosaic',      'atmosphere_mosaic_name',              'atmos_mosaic')
+
+        add_string_var_1d(mosaic_ds, 'lnd_mosaic_dir',  'directory_storing_land_mosaic',       mom6_grid['filenames']['directory'])
+        add_string_var_1d(mosaic_ds, 'lnd_mosaic_file', 'land_mosaic_file_name',               mom6_grid['filenames']['mosaic'])
+        add_string_var_1d(mosaic_ds, 'lnd_mosaic',      'land_mosaic_name',                    'land_mosaic')
+
+        add_string_var_1d(mosaic_ds, 'ocn_mosaic_dir',  'directory_storing_ocean_mosaic',      mom6_grid['filenames']['directory'])
+        add_string_var_1d(mosaic_ds, 'ocn_mosaic_file', 'ocean_mosaic_file_name',              mom6_grid['filenames']['mosaic'])
+        add_string_var_1d(mosaic_ds, 'ocn_mosaic',      'ocean_mosaic_name',                   'ocean_mosaic')
+
+        add_string_var_1d(mosaic_ds, 'ocn_topog_dir',   'directory_storing_ocean_topog',       mom6_grid['filenames']['directory'])
+        add_string_var_1d(mosaic_ds, 'ocn_topog_file',  'ocean_topog_file_name',               mom6_grid['filenames']['topography'])
+      
+        add_string_var_2d(mosaic_ds, 'aXo_file', 'nfile_aXo', 'atmXocn_exchange_grid_file', mom6_grid['filenames']['atmos_ocean_exchange'])
+        add_string_var_2d(mosaic_ds, 'aXl_file', 'nfile_aXl', 'atmXlnd_exchange_grid_file', mom6_grid['filenames']['atmos_land_exchange'])
+        add_string_var_2d(mosaic_ds, 'lXo_file', 'nfile_lXo', 'lndXocn_exchange_grid_file', mom6_grid['filenames']['land_ocean_exchange'])
+
 def main(argv):
     """Take a ROMS grid file and output a set of files to represent the MOM6 grid."""
 
@@ -561,6 +612,7 @@ def main(argv):
     roms_grid = trim_ROMS_grid(roms_grid)
     mom6_grid = convert_ROMS_to_MOM6(mom6_grid, roms_grid)
     mom6_grid = approximate_MOM6_grid_metrics(mom6_grid)
+
     write_MOM6_supergrid_file(mom6_grid)
     write_MOM6_topography_file(mom6_grid)
     write_MOM6_solo_mosaic_file(mom6_grid)
@@ -569,6 +621,7 @@ def main(argv):
     write_MOM6_exchange_grid_file(mom6_grid, 'atmos',  'land')
     write_MOM6_exchange_grid_file(mom6_grid, 'atmos', 'ocean')
     write_MOM6_exchange_grid_file(mom6_grid,  'land', 'ocean')
+    write_MOM6_coupler_mosaic_file(mom6_grid)
 
 if __name__ == "__main__":
     main(sys.argv)
