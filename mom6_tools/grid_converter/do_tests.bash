@@ -38,10 +38,12 @@ function ensure_nc_files_match() {
     return $status
 }
 
-FILES="ocean_hgrid.nc ocean_topog.nc ocean_mosaic.nc land_mask.nc ocean_mask.nc atmos_mosaic_tile1Xland_mosaic_tile1.nc atmos_mosaic_tile1Xocean_mosaic_tile1.nc land_mosaic_tile1Xocean_mosaic_tile1.nc mosaic.nc"
+GRID_FILE="../../../ROMS-Inputs/CCS1/grid/CCS_7k_0-360_fred_grd.nc"
 
-rm -f ${FILES}
-./convert_ROMS_grid_to_MOM6.py CCS_7k_0-360_fred_grd.nc
-for file in ${FILES}; do
+NC_FILES="ocean_hgrid.nc ocean_topog.nc ocean_mosaic.nc land_mask.nc ocean_mask.nc atmos_mosaic_tile1Xland_mosaic_tile1.nc atmos_mosaic_tile1Xocean_mosaic_tile1.nc land_mosaic_tile1Xocean_mosaic_tile1.nc mosaic.nc"
+
+rm -f ${NC_FILES}
+./convert_ROMS_grid_to_MOM6.py "${GRID_FILE}"
+for file in ${NC_FILES}; do
     ensure_nc_files_match expected_output/${file} ./${file}
 done
