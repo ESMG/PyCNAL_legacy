@@ -88,7 +88,6 @@ def read_ROMS_grid(roms_grid_filename):
             roms_grid['metadata']['is_spherical'] = True
         else:
             warn('Unrecognized value for spherical in ROMS grid: %s', str(spherical))
-        print 'spherical = ', roms_grid['metadata']['is_spherical']
 
     return roms_grid
 
@@ -312,10 +311,10 @@ def write_MOM6_supergrid_file(mom6_grid):
         hy = hgrid_ds.createVariable('y', 'f4', ('nyp','nxp',))
 
         if 'lon' in mom6_grid['supergrid']:
-            hx.units = 'degrees' # TODO: degrees_east?
+            hx.units = 'degrees_east'
             hx[:] = mom6_grid['supergrid']['lon']
 
-            hy.units = 'degrees' # TODO: degrees_north?
+            hy.units = 'degrees_north'
             hy[:] = mom6_grid['supergrid']['lat']
         else:
             hx.units = 'meters'
@@ -337,7 +336,7 @@ def write_MOM6_supergrid_file(mom6_grid):
         harea[:] = mom6_grid['supergrid']['area']
 
         hangle = hgrid_ds.createVariable('angle_dx', 'f4', ('nyp','nxp',))
-        hangle.units = 'degrees' # TODO: actually computed in radians!
+        hangle.units = 'radians'
         hangle[:] = mom6_grid['supergrid']['angle']
 
         htile = hgrid_ds.createVariable('tile', 'c', ('string',))
