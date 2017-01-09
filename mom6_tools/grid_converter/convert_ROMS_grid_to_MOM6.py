@@ -257,56 +257,12 @@ def _calculate_MOM6_cell_grid_area(mom6_grid):
     """Compute the area for the MOM6 cells (not the sub-cells of the
     supergrid)."""
 
-# This is the desired algorithm, but for comparison to output of original tool,
-# we need to calculate areas differently...
-#    # Combine areas of smaller supergrid cells into areas of cell-grid cells
-#    a00 = mom6_grid['supergrid']['area'][0::2,0::2]
-#    a01 = mom6_grid['supergrid']['area'][0::2,1::2]
-#    a10 = mom6_grid['supergrid']['area'][1::2,0::2]
-#    a11 = mom6_grid['supergrid']['area'][1::2,1::2]
-#    mom6_grid['cell_grid']['area'] = a00 + a01 + a10 + a11
-
-    # For testing, compute cell areas exactly like "make_quick_mosaic" tool
-    nx = mom6_grid['cell_grid']['nx']
-    ny = mom6_grid['cell_grid']['ny']
-    mom6_grid['cell_grid']['area'] = numpy.zeros((ny,nx))
-    lonb = numpy.radians(mom6_grid['supergrid']['lon'][::2,::2].astype('f4').astype('d'))
-    latb = numpy.radians(mom6_grid['supergrid']['lat'][::2,::2].astype('f4').astype('d'))
-
-    def calculate_poly_area(x, y):
-        """Given a list of lat/lon vertices, compute the area between them.  Ported from
-        C to Python directly from make_quick_mosaic code, for consistency in output."""
-    
-        # TODO: what if we have x/y instead of lat/lon?
-        SMALL_VALUE = 1.0e-10
-        RADIUS = 6371000.0
-        area = 0.0
-        for i in range(len(x)):
-            ip = (i + 1) % len(x)
-            dx = x[ip] - x[i]
-            if dx > numpy.pi:
-                dx = dx - 2.0 * numpy.pi
-            if dx < -numpy.pi:
-                dx = dx + 2.0 * numpy.pi
-            if dx == 0.0:
-                continue
-    
-            lat1 = y[ip]
-            lat2 = y[i]
-            # cheap area calculation along latitude
-            if abs(lat1 - lat2) < SMALL_VALUE:
-                dat = 1.0 # small value approximation
-            else:
-                dy = 0.5 * (lat1 - lat2)
-                dat = numpy.sin(dy) / dy
-            area -= dx * numpy.sin(0.5 * (lat1 + lat2)) * dat
-        return abs(area) * RADIUS * RADIUS
-
-    for j in range(ny):
-        for i in range(nx):
-            cell_corners_x = numpy.array([lonb[j+0,i+0], lonb[j+0,i+1], lonb[j+1,i+1], lonb[j+1,i+0]])
-            cell_corners_y = numpy.array([latb[j+0,i+0], latb[j+0,i+1], latb[j+1,i+1], latb[j+1,i+0]])
-            mom6_grid['cell_grid']['area'][j,i] = calculate_poly_area(cell_corners_x, cell_corners_y)
+    # Combine areas of smaller supergrid cells into areas of cell-grid cells
+    a00 = mom6_grid['supergrid']['area'][0::2,0::2]
+    a01 = mom6_grid['supergrid']['area'][0::2,1::2]
+    a10 = mom6_grid['supergrid']['area'][1::2,0::2]
+    a11 = mom6_grid['supergrid']['area'][1::2,1::2]
+    mom6_grid['cell_grid']['area'] = a00 + a01 + a10 + a11
 
     return mom6_grid
 
