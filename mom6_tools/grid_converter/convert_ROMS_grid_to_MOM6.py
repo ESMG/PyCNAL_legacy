@@ -201,9 +201,13 @@ def convert_ROMS_to_MOM6(mom6_grid, roms_grid):
         mom6_grid['supergrid'][field][1::2, ::2] = roms_grid[ 'u' ][field] # between e/w
         mom6_grid['supergrid'][field][ ::2,1::2] = roms_grid[ 'v' ][field] # between n/s
 
-    mom6_grid['cell_grid']['depth'] = roms_grid['rho']['h'] * roms_grid['rho']['mask']
-    mom6_grid['cell_grid']['ocean_mask'] = roms_grid['rho']['mask']
-    mom6_grid['cell_grid']['land_mask'] = numpy.logical_not(roms_grid['rho']['mask'])
+    # 0 = land, 1 = water, but sometimes some huge number indicates
+    # "missing" values, which we'll assume to be water
+    mask = roms_grid['rho']['mask']
+    mask[mask != 0] = 1
+    mom6_grid['cell_grid']['depth'] = roms_grid['rho']['h'] * mask
+    mom6_grid['cell_grid']['ocean_mask'] = mask
+    mom6_grid['cell_grid']['land_mask'] = numpy.logical_not(mask)
 
     return mom6_grid
 
