@@ -160,8 +160,8 @@ def setup_MOM6_grid(argv):
     mom6_grid['netcdf_info']['tile_str']      = tile_str
     mom6_grid['netcdf_info']['string_length'] = 255
     mom6_grid['netcdf_info']['grid_version']  = '0.2' # taken from make_solo_mosaic
-    mom6_grid['netcdf_info']['code_version']  = '$Name: tikal $' ### for testing
-    #mom6_grid['netcdf_info']['code_version']  = get_git_repo_version_info() ### for production
+    #mom6_grid['netcdf_info']['code_version']  = '$Name: tikal $' ### for testing
+    mom6_grid['netcdf_info']['code_version']  = get_git_repo_version_info() ### for production
     mom6_grid['netcdf_info']['history_entry'] = get_history_entry(argv)
 
     mom6_grid['supergrid'] = dict()
@@ -291,6 +291,11 @@ def approximate_MOM6_grid_metrics(mom6_grid):
 
     return mom6_grid
 
+def _add_global_attributes(mom6_grid, netcdf_dataset):
+    netcdf_dataset.grid_version = mom6_grid['netcdf_info']['grid_version']
+    netcdf_dataset.code_version = mom6_grid['netcdf_info']['code_version']
+    netcdf_dataset.history      = mom6_grid['netcdf_info']['history_entry']
+
 def write_MOM6_supergrid_file(mom6_grid):
     """Save the MOM6 supergrid data into its own file."""
 
@@ -342,6 +347,9 @@ def write_MOM6_supergrid_file(mom6_grid):
         htile = hgrid_ds.createVariable('tile', 'c', ('string',))
         htile[:] = mom6_grid['netcdf_info']['tile_str']
 
+        # Global attributes
+        _add_global_attributes(mom6_grid, hgrid_ds)
+
 def write_MOM6_topography_file(mom6_grid):
     """Save the MOM6 ocean topography field in a separate file."""
 
@@ -358,10 +366,8 @@ def write_MOM6_topography_file(mom6_grid):
         hdepth.units = 'm'
         hdepth[:] = mom6_grid['cell_grid']['depth']
 
-def _add_global_attributes(mom6_grid, netcdf_dataset):
-    netcdf_dataset.grid_version = mom6_grid['netcdf_info']['grid_version']
-    netcdf_dataset.code_version = mom6_grid['netcdf_info']['code_version']
-    netcdf_dataset.history      = mom6_grid['netcdf_info']['history_entry']
+        # Global attributes
+        _add_global_attributes(mom6_grid, topog_ds)
 
 def write_MOM6_solo_mosaic_file(mom6_grid):
     """Write the "solo mosaic" file, which describes to the FMS infrastructure
@@ -463,10 +469,6 @@ def write_MOM6_exchange_grid_file(mom6_grid, name1, name2):
     filename = mom6_grid['filenames'][filename_key]
 
     with netCDF4.Dataset(filename, 'w', format='NETCDF3_CLASSIC') as exchange_ds:
-        exchange_ds.grid_version = mom6_grid['netcdf_info']['grid_version']
-        exchange_ds.code_version = mom6_grid['netcdf_info']['code_version']
-        exchange_ds.history = mom6_grid['netcdf_info']['history_entry']
-
         exchange_ds.createDimension('string', mom6_grid['netcdf_info']['string_length'])
         exchange_ds.createDimension('ncells', ncells)
         exchange_ds.createDimension('two', 2)
@@ -503,6 +505,9 @@ def write_MOM6_exchange_grid_file(mom6_grid, name1, name2):
         htile2_dist.standard_name = 'distance_from_parent2_cell_centroid'
         htile2_dist[:] = tile_dist
 
+        # Global attributes
+        _add_global_attributes(mom6_grid, exchange_ds)
+
 def write_MOM6_coupler_mosaic_file(mom6_grid):
     """Write the compler mosaic file, which references all the rest.
     Based on 'make_quick_mosaic' tool in version 5 of MOM (http://www.mom-ocean.org/)."""
@@ -521,10 +526,6 @@ def write_MOM6_coupler_mosaic_file(mom6_grid):
         id_var[0, 0:len(value)] = value
 
     with netCDF4.Dataset('mosaic.nc', 'w', format='NETCDF3_CLASSIC') as mosaic_ds:
-        mosaic_ds.grid_version = mom6_grid['netcdf_info']['grid_version']
-        mosaic_ds.code_version = mom6_grid['netcdf_info']['code_version']
-        mosaic_ds.history      = mom6_grid['netcdf_info']['history_entry']
-      
         mosaic_ds.createDimension('string', mom6_grid['netcdf_info']['string_length'])
         mosaic_ds.createDimension('nfile_aXo', 1)
         mosaic_ds.createDimension('nfile_aXl', 1)
@@ -550,6 +551,9 @@ def write_MOM6_coupler_mosaic_file(mom6_grid):
         add_string_var_2d(mosaic_ds, 'aXo_file', 'nfile_aXo', 'atmXocn_exchange_grid_file', mom6_grid['filenames']['atmos_ocean_exchange'])
         add_string_var_2d(mosaic_ds, 'aXl_file', 'nfile_aXl', 'atmXlnd_exchange_grid_file', mom6_grid['filenames']['atmos_land_exchange'])
         add_string_var_2d(mosaic_ds, 'lXo_file', 'nfile_lXo', 'lndXocn_exchange_grid_file', mom6_grid['filenames']['land_ocean_exchange'])
+
+        # Global attributes
+        _add_global_attributes(mom6_grid, mosaic_ds)
 
 def main(argv):
     """Take a ROMS grid file and output a set of files to represent the MOM6 grid."""

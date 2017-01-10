@@ -16,7 +16,7 @@ function ensure_nc_files_match() {
     # Find all the metadata diffrences (except history)
     # "--warn=eos" to ignore the null at the end of empty strings
     # (the original files don't have it, but the new ones do)
-    nccmp --metadata --global --force --warn=eos "${NCFILE1}" "${NCFILE2}"
+    nccmp --metadata --global --globalex code_version --force --warn=eos "${NCFILE1}" "${NCFILE2}"
     status=$?
 
     # Indicate if the data differs, without printing out every different value
