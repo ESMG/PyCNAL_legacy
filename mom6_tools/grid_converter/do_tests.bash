@@ -35,28 +35,43 @@ function ensure_nc_files_match() {
         status=$status2
     fi
 
+    file=`basename "${NCFILE1}"`
     if [ $status -eq 0 ] ; then
-	echo "PASSED: ${NCFILE1} vs ${NCFILE2}"
+	echo "PASSED: ${file}"
     else
-	echo "FAILED ($status): ${NCFILE1} vs ${NCFILE2}"
+	echo "FAILED ($status): ${file}"
     fi
     return $status
 }
 
-NC_FILES="ocean_hgrid.nc ocean_topog.nc ocean_mosaic.nc land_mask.nc ocean_mask.nc atmos_mosaic_tile1Xland_mosaic_tile1.nc atmos_mosaic_tile1Xocean_mosaic_tile1.nc land_mosaic_tile1Xocean_mosaic_tile1.nc mosaic.nc"
+function run_converter() {
+    GRID_FILE="$1"
+    OUTPUT_DIR="$2"
 
-CCS_GRID_FILE="../../../ROMS-Inputs/CCS1/grid/CCS_7k_0-360_fred_grd.nc"
+    [ -d "${OUTPUT_DIR}" ] && rm -rf "${OUTPUT_DIR}"
+    mkdir "${OUTPUT_DIR}"
+    pushd "${OUTPUT_DIR}" > /dev/null
+    ../convert_ROMS_grid_to_MOM6.py "${GRID_FILE}"
+    popd > /dev/null
+}
 
-rm -f ${NC_FILES}
-./convert_ROMS_grid_to_MOM6.py "${CCS_GRID_FILE}"
-for file in ${NC_FILES}; do
-    ensure_nc_files_match expected_CCS/${file} ./${file}
-done
+function verify_output() {
+    EXPECTED_DIR="$1"
+    OUTPUT_DIR="$2"
 
-SUPERCRITICAL_GRID_FILE="expected_Supercritical/grid_Supercritical.nc"
+    echo "===== ${EXPECTED_DIR} vs ${OUTPUT_DIR} ====="
+    for file in "${EXPECTED_DIR}"/*; do
+	file=`basename "${file}"`
+        ensure_nc_files_match "${EXPECTED_DIR}/${file}" "${OUTPUT_DIR}/${file}"
+    done
+}
 
-rm -f ${NC_FILES}
-./convert_ROMS_grid_to_MOM6.py "${SUPERCRITICAL_GRID_FILE}"
-for file in ${NC_FILES}; do
-    ensure_nc_files_match expected_Supercritical/${file} ./${file}
-done
+# CCS
+OUT_DIR="CCS_grid"
+run_converter "../../../../ROMS-Inputs/CCS1/grid/CCS_7k_0-360_fred_grd.nc" "${OUT_DIR}"
+verify_output "expected/CCS" "${OUT_DIR}"
+
+# Supercritical
+OUT_DIR="Supercritical_grid"
+run_converter "../expected/grid_Supercritical.nc" "${OUT_DIR}"
+verify_output "expected/Supercritical" "${OUT_DIR}"
