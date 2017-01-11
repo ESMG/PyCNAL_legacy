@@ -575,6 +575,8 @@ def main(argv):
         print '    - ' + mom6_grid['filenames']['atmos_land_exchange']
         print '    - ' + mom6_grid['filenames']['atmos_ocean_exchange']
         print '    - ' + mom6_grid['filenames']['land_ocean_exchange']
+        print ''
+        print 'Files are placed in the current diretory.'
         exit(1)
 
     roms_grid = read_ROMS_grid(roms_grid_filename)
