@@ -8,6 +8,7 @@ import netCDF4
 import os.path
 import datetime
 import subprocess
+import warnings
 
 import Spherical
 
@@ -82,12 +83,12 @@ def read_ROMS_grid(roms_grid_filename):
         roms_grid['metadata'] = dict()
 
         spherical = roms_ds.variables['spherical'][:]
-        if (spherical == 0) or (spherical == 'F') or (spherical == 'f'):
+        if (spherical == 0) or (spherical == b'F') or (spherical == b'f'):
             roms_grid['metadata']['is_spherical'] = False
-        elif (spherical == 1) or (spherical == 'T') or (spherical == 't'):
+        elif (spherical == 1) or (spherical == b'T') or (spherical == b't'):
             roms_grid['metadata']['is_spherical'] = True
         else:
-            warn('Unrecognized value for spherical in ROMS grid: %s', str(spherical))
+            warnings.warn('Unrecognized value for spherical in ROMS grid: %s' % str(spherical))
 
     return roms_grid
 
@@ -123,8 +124,9 @@ def trim_ROMS_grid(old_grid):
 def get_git_repo_version_info():
     """Describe the current version of this script as known by Git."""
     repo_name = 'ESMG/PyCNAL'
-    git_describe =  subprocess.check_output(['git', 'describe', '--all', '--long', '--dirty', '--abbrev=10']).rstrip()
-    return repo_name + ': ' + git_describe
+    git_command = ['git', 'describe', '--all', '--long', '--dirty', '--abbrev=10']
+    description =  subprocess.check_output(git_command, universal_newlines=True).rstrip()
+    return repo_name + ': ' + description
 
 def get_history_entry(argv):
     """Construct an entry for the global 'history' attribute of a NetCDF file,
@@ -563,20 +565,20 @@ def main(argv):
     if len(argv) == 2:
         roms_grid_filename = argv[1]
     else:
-        print 'Usage: %s RGRID' % argv[0]
-        print ''
-        print 'Converts the ROMS horizontal grid stored in the NetCDF file RGRID into'
-        print 'a collection of NetCDF files representing the MOM6 horizontal grid:'
-        print ' * supergrid file ("%s")' % mom6_grid['filenames']['supergrid']
-        print ' * topography file ("%s")' % mom6_grid['filenames']['topography']
-        print ' * land and ocean mask files ("%s", "%s")' % (mom6_grid['filenames']['land_mask'], mom6_grid['filenames']['ocean_mask'])
-        print ' * coupler mosaic file ("%s")' % mom6_grid['filenames']['mosaic']
-        print ' * coupler exchange files:'
-        print '    - ' + mom6_grid['filenames']['atmos_land_exchange']
-        print '    - ' + mom6_grid['filenames']['atmos_ocean_exchange']
-        print '    - ' + mom6_grid['filenames']['land_ocean_exchange']
-        print ''
-        print 'Files are placed in the current diretory.'
+        print('Usage: %s RGRID' % argv[0])
+        print('')
+        print('Converts the ROMS horizontal grid stored in the NetCDF file RGRID into')
+        print('a collection of NetCDF files representing the MOM6 horizontal grid:')
+        print(' * supergrid file ("%s")' % mom6_grid['filenames']['supergrid'])
+        print(' * topography file ("%s")' % mom6_grid['filenames']['topography'])
+        print(' * land and ocean mask files ("%s", "%s")' % (mom6_grid['filenames']['land_mask'], mom6_grid['filenames']['ocean_mask']))
+        print(' * coupler mosaic file ("%s")' % mom6_grid['filenames']['mosaic'])
+        print(' * coupler exchange files:')
+        print('    - ' + mom6_grid['filenames']['atmos_land_exchange'])
+        print('    - ' + mom6_grid['filenames']['atmos_ocean_exchange'])
+        print('    - ' + mom6_grid['filenames']['land_ocean_exchange'])
+        print('')
+        print('Files are placed in the current diretory.')
         exit(1)
 
     roms_grid = read_ROMS_grid(roms_grid_filename)
