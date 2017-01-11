@@ -567,8 +567,14 @@ def main(argv):
         print ''
         print 'Converts the ROMS horizontal grid stored in the NetCDF file RGRID into'
         print 'a collection of NetCDF files representing the MOM6 horizontal grid:'
-        print ' - supergrid file ("%s")' % mom6_grid['filenames']['supergrid']
-        print ' - topography file ("%s")' % mom6_grid['filenames']['topography']
+        print ' * supergrid file ("%s")' % mom6_grid['filenames']['supergrid']
+        print ' * topography file ("%s")' % mom6_grid['filenames']['topography']
+        print ' * land and ocean mask files ("%s", "%s")' % (mom6_grid['filenames']['land_mask'], mom6_grid['filenames']['ocean_mask'])
+        print ' * coupler mosaic file ("%s")' % mom6_grid['filenames']['mosaic']
+        print ' * coupler exchange files:'
+        print '    - ' + mom6_grid['filenames']['atmos_land_exchange']
+        print '    - ' + mom6_grid['filenames']['atmos_ocean_exchange']
+        print '    - ' + mom6_grid['filenames']['land_ocean_exchange']
         exit(1)
 
     roms_grid = read_ROMS_grid(roms_grid_filename)
