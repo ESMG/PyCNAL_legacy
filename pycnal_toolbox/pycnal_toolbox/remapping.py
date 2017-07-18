@@ -215,13 +215,10 @@ def remapping(varname, srcfile, wts_files, srcgrd, dstgrd, \
                 else:
                     src_varz = src_var[nt,jjrange[0]:jjrange[1],iirange[0]:iirange[1]]
 
-#                print datetime.datetime.now()
                 # horizontal interpolation using scrip weights
                 print('horizontal interpolation using scrip weights')
                 dst_varz = pycnal.remapping.remap(src_varz, wts_file, \
                                                   spval=spval)
-
-#                print datetime.datetime.now()
 
                 if ndim == 3:
                     # vertical interpolation from standard z level to sigma
@@ -231,12 +228,10 @@ def remapping(varname, srcfile, wts_files, srcgrd, dstgrd, \
                 else:
                     dst_var = dst_varz
 
-# jgp add
                 if varname[nv] == 'u':
                     dst_u = dst_var
                 if varname[nv] == 'v':
                     dst_v = dst_var
-# jgp end
 
                 # write data in destination file
                 print('write data in destination file')
