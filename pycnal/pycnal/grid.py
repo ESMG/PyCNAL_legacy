@@ -418,8 +418,6 @@ def get_ROMS_vgrid(gridid, zeta=None):
             vgrid = s_coordinate_2(h, theta_b, theta_s, Tcline, N, hraw=hraw, zeta=zeta)
         elif Vtrans == 4:
             vgrid = s_coordinate_4(h, theta_b, theta_s, Tcline, N, hraw=hraw, zeta=zeta) 
-    
-# jgp add
         elif Vtrans == 5:
             vgrid = s_coordinate_5(h, theta_b, theta_s, Tcline, N, hraw=hraw, zeta=zeta)
     

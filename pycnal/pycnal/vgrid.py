@@ -290,13 +290,6 @@ class s_coordinate_5(s_coordinate):
         self.z_w = z_w(self.h, self.hc, self.Np, self.s_w, self.Cs_w, self.zeta, self.Vtrans)
 
     def _get_s_rho(self):
-##        jgp replace
-#        lev = np.arange(1,self.N+1,1)
-#        s = -(lev * lev - 2 * lev * self.N + lev + self.N * self.N - self.N) / \
-#            (self.N * self.N - self.N) - \
-#            0.01 * (lev * lev - lev * self.N) / (self.c1 - self.N)
-#        self.s_rho = s
-##        jgp new section follows
         lev = np.arange(1, self.N+1) - .5
         self.s_rho = -(lev * lev - 2 * lev * self.N + lev + self.N * self.N - self.N) / \
             (1.0 * self.N * self.N - self.N) - \
