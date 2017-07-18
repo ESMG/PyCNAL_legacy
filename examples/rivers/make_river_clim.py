@@ -54,7 +54,7 @@ for t in range(nt):
 	        frac = 1.0/count[j,i]
 		k = rivers[j,i][n]
 		runoff[k] = frac*data[t,j,i]
-	        
+
 
     if t==180:
         sum180 = np.sum(runoff)
