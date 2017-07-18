@@ -6,7 +6,7 @@ import pycnal
 import pycnal_toolbox
 
 
-# load 2-dimentional discharge data 
+# load 2-dimentional discharge data
 print('Load discharge data')
 nc_data = netCDF.Dataset('CI_runoff.nc', 'r')
 nc_rivers = netCDF.Dataset('Cook_Inlet_rivers.nc', 'a')
