@@ -53,6 +53,7 @@ def remapping(varname, srcfile, wts_files, srcgrd, dstgrd, \
     srcgrdz = pycnal.grid.ROMS_Grid(srcgrd.name+'_Z', srcgrd.hgrid, src_zcoord)
     dstgrdz = pycnal.grid.ROMS_Grid(dstgrd.name+'_Z', dstgrd.hgrid, dst_zcoord)
 
+
     # varname argument
     if type(varname).__name__ == 'list':
         nvar = len(varname)
@@ -229,6 +230,13 @@ def remapping(varname, srcfile, wts_files, srcgrd, dstgrd, \
                                      Cpos=Cpos, spval=spval, flood=False)
                 else:
                     dst_var = dst_varz
+
+# jgp add
+                if varname[nv] == 'u':
+                    dst_u = dst_var
+                if varname[nv] == 'v':
+                    dst_v = dst_var
+# jgp end
 
                 # write data in destination file
                 print('write data in destination file')
