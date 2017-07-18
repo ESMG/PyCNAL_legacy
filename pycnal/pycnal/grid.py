@@ -107,7 +107,7 @@ class ROMS_gridinfo(object):
             line_nb = line_nb + 1
 
         if info == []:
-            raise ValueError('Unknow gridid. Please check your gridid.txt file')
+            raise ValueError('Unknown gridid. Please check your gridid.txt file')
 
         if info[4] == 'roms':
             self.name     =          info[1]
@@ -133,7 +133,7 @@ class ROMS_gridinfo(object):
             self.depth   = dep
 
         else:
-            raise ValueError('Unknow grid type. Please check your gridid.txt file')
+            raise ValueError('Unknown grid type. Please check your gridid.txt file')
 
       else: #lets get the grid information from the history and grid files
         #print 'CJMP> getting grid info from ROMS history and grid files'
@@ -417,9 +417,14 @@ def get_ROMS_vgrid(gridid, zeta=None):
         elif Vtrans == 2:
             vgrid = s_coordinate_2(h, theta_b, theta_s, Tcline, N, hraw=hraw, zeta=zeta)
         elif Vtrans == 4:
-            vgrid = s_coordinate_4(h, theta_b, theta_s, Tcline, N, hraw=hraw, zeta=zeta)
+            vgrid = s_coordinate_4(h, theta_b, theta_s, Tcline, N, hraw=hraw, zeta=zeta) 
+    
+# jgp add
+        elif Vtrans == 5:
+            vgrid = s_coordinate_5(h, theta_b, theta_s, Tcline, N, hraw=hraw, zeta=zeta)
+    
         else:
-            raise Warning('Unknow vertical transformation Vtrans')
+            raise Warning('Unknown vertical transformation Vtrans')
 
     elif  gridinfo.grdtype == 'z':
         N = gridinfo.N
@@ -427,7 +432,7 @@ def get_ROMS_vgrid(gridid, zeta=None):
         vgrid = z_coordinate(h, depth, N)
 
     else:
-        raise ValueError('Unknow grid type')
+        raise ValueError('Unknown grid type')
 
     return vgrid
 

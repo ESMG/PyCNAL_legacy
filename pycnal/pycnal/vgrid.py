@@ -289,21 +289,25 @@ class s_coordinate_5(s_coordinate):
         self.z_r = z_r(self.h, self.hc, self.N, self.s_rho, self.Cs_r, self.zeta, self.Vtrans)
         self.z_w = z_w(self.h, self.hc, self.Np, self.s_w, self.Cs_w, self.zeta, self.Vtrans)
 
-
     def _get_s_rho(self):
-        lev = np.arange(1,self.N+1,1)
-        s = -(lev * lev - 2 * lev * self.N + lev + self.N * self.N - self.N) / \
-            (self.N * self.N - self.N) - \
-            0.01 * (lev * lev - lev * self.N) / (self.c1 - self.N)
-#            (self.c1 * self.N * self.N - self.N) - \
-        self.s_rho = s
+##        jgp replace
+#        lev = np.arange(1,self.N+1,1)
+#        s = -(lev * lev - 2 * lev * self.N + lev + self.N * self.N - self.N) / \
+#            (self.N * self.N - self.N) - \
+#            0.01 * (lev * lev - lev * self.N) / (self.c1 - self.N)
+#        self.s_rho = s
+##        jgp new section follows
+        lev = np.arange(1, self.N+1) - .5
+        self.s_rho = -(lev * lev - 2 * lev * self.N + lev + self.N * self.N - self.N) / \
+            (1.0 * self.N * self.N - self.N) - \
+            0.01 * (lev * lev - lev * self.N) / (1.0 - self.N)
+
 
     def _get_s_w(self):
         lev = np.arange(0,self.Np,1)
         s = -(lev * lev - 2 * lev * self.N + lev + self.N * self.N - self.N) / \
             (self.N * self.N - self.N) - \
             0.01 * (lev * lev - lev * self.N) / (self.c1 - self.N)
-#            (self.c1 * self.N * self.N - self.N) - \
         self.s_w = s
 
     def _get_Cs_r(self):
@@ -346,6 +350,7 @@ class z_r(object):
         self.Cs_r = Cs_r
         self.zeta = zeta
         self.Vtrans = Vtrans
+
 
     def __getitem__(self, key):
 
@@ -412,12 +417,13 @@ class z_w(object):
 
         ti = zeta.shape[0]
         z_w = np.empty((ti, self.Np) + self.h.shape, 'd')
+
         if self.Vtrans == 1:
             for n in range(ti):
                 for  k in range(self.Np):
                     z0 = self.hc * self.s_w[k] + (self.h - self.hc) * self.Cs_w[k]
                     z_w[n,k,:] = z0 + zeta[n,:] * (1.0 + z0 / self.h)
-        elif self.Vtrans == 2 or self.Vtrans == 4:
+        elif self.Vtrans == 2 or self.Vtrans == 4 or self.Vtrans == 5:
             for n in range(ti):
                 for  k in range(self.Np):
                     z0 = (self.hc * self.s_w[k] + self.h * self.Cs_w[k]) / \
