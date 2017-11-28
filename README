@@ -61,11 +61,24 @@ For now,
                      python setup.py install --prefix=xxx;
                      cd ..
   cd pycnal; check the paths in the install script and see if it runs...
-             Maybe cut and paste from it into a bash shell.
-
-I had to hack the scrip makefile for the fortran90 netcdf stuff. The
-anaconda netcdf-fortran reports:
-    nf-config not yet implemented for cmake builds
+             Maybe cut and paste from it into a bash shell. In particular, 
+             if the command "nc-config --fflags" returns something like 
+             "nf-config not yet implemented for cmake builds", you must
+             edit pycnal/external/scrip/source/makefile so that LIBDIR
+             contains the path to the netCDF libraries, INCDIR contains
+             the path to the netCDF include files, and LIB contains the
+             options for your fortran compiler to include netCDF. 
+             
+             If you are using Anaconda to manage your python, for a conda
+             environment named PyCNAL, and for a username of YOURNAME, compiling with gfortran,
+             you can try
+             
+             LIBDIR = /home/YOURNAME/anaconda3/envs/PyCNAL/lib
+             INCDIR = /home/YOURNAME/anaconda3/envs/PyCNAL/include
+             LIB  =  -L${LIBDIR} -lnetcdff -Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-z,now -lnetcdf 
+             
+             This assumes you have installed the netCDF4 package with conda, and are 
+             linking against those libraries. 
 
 A note on the .so files from fortran: They might now end up with names like:
 
